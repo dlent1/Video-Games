@@ -6,6 +6,7 @@
     var gameState = "DISPLAY_TITLE_SCREEN";
 
     var backgroundImage = new Image();
+    var pilotImage = new Image();
     var soundPool = new Array();
     var clickSound;
     var theCanvas;
@@ -63,6 +64,9 @@
         itemsToLoad = 10;
         backgroundImage.onload = itemLoaded;
         backgroundImage.src = "https://centurionsreview.com/Survival/SurvivalMap.gif";
+
+        pilotImage.onload = itemLoaded;
+        pilotImage.src = "https://centurionsreview.com/Survival/FighterPilotCounter.gif"
 
         return true; // Don't remove
     }

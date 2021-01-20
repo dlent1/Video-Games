@@ -14,6 +14,9 @@
     var loadCount = 0;
     var itemsToLoad = 0;
     var gameState = DISPLAY_TITLE_SCREEN;
+    var playerCounter = { x: 0, y: 0 };
+    var centeringAdjustmentX = 5;
+    var centeringAdjustmentY = 9;
 
     initializeImagesAndSounds();
     startGame();
@@ -27,16 +30,14 @@
             return;
         }
 
-        if (titleStarted) { // Async bullshit: complete added to make sure this doesn't run until the images and sounds fully load
-            // Display background
-            context.drawImage(backgroundImage, 0, 0);
+        // Display background
+        context.drawImage(backgroundImage, 0, 0);
 
-            const hexGrid = new HexGrid(context, 46, 0, 0);
-            hexGrid.drawHexGrid(9, 14, 16, 0, true)
+        const hexGrid = new HexGrid(context, 46, 0, 0);
+        hexGrid.drawHexGrid(9, 14, 16, 0, true)
 
-            // Display title screen and instructions
-        }
-
+        // Place counter on random position on bottom of map
+        placeCounterRandomly(hexGrid, context);
         //else {
             //wait for space key click
          //   if (keyPressList[32] == true) {
@@ -49,6 +50,23 @@
             //else
             //startGame(); // Recursively call this function until the space is pressed
         //}
+    }
+
+    // Place the counter on a random location on the bottom of the map
+    function placeCounterRandomly(hexGrid, context) {
+        var tempRandomNumber = Math.floor(Math.random() * 14);
+
+        if (tempRandomNumber == 5 || tempRandomNumber == 6)
+            playerCounter.x = 7;
+        else
+            playerCounter.x = tempRandomNumber;
+
+        playerCounter.y = 8;
+
+        var targetHex = hexGrid.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+
+        context.drawImage(pilotImage, targetHex.column, targetHex.row);
+        alert("column = " + playerCounter.x + " row = " + playerCounter.y);
     }
 
     // Once the game loads disable the start button

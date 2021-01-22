@@ -55,7 +55,8 @@
 
     initializeImagesAndSounds();
     startGame();
-    theCanvas.addEventListener("mouseup", eventMouseUp, false);	
+    theCanvas.addEventListener("mouseup", eventMouseUp, false);
+    startGame();
 
     function startGame() {
         // If the browser doesn't support canvas exit
@@ -106,6 +107,10 @@
         context.fillText("Days of Water: " + waterAmount, 1020, 320);
         context.fillText("Days of Food: " + foodAmount, 1020, 350);
         context.fillText("Life Points: " + lifePoints, 1020, 380);
+
+        // Set back to original values
+        context.font = "10px serif";
+        context.fillStyle = "red";
     }
 
     function eventMouseUp(event) {

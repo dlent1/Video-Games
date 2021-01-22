@@ -2,11 +2,17 @@
     const DISPLAY_TITLE_SCREEN = 10;
     const STATE_RESET = 20;
 
+    theCanvas = document.getElementById("survivalCanvas");
+    context = theCanvas.getContext("2d");
+
     var titleStarted = true;
     var gameState = "DISPLAY_TITLE_SCREEN";
 
     var backgroundImage = new Image();
     var pilotImage = new Image();
+    var greenXImage = new Image();
+    var crashedPlane = new Image();
+
     var soundPool = new Array();
     var clickSound;
     var theCanvas;
@@ -17,14 +23,41 @@
     var playerCounter = { x: 0, y: 0 };
     var centeringAdjustmentX = 5;
     var centeringAdjustmentY = 9;
+    var actionPoints = 4;
+    var lifePoints = 10;
+    var waterAmount = 4;
+    var foodAmount = 3;
+    var exhaustion = 0;
+
+    var terrainCostMatrix = [
+        [1, 5, 1, 1, 1, 1, 3, 3, 1, 1, 1, 2, 1, 1],
+        [1, 4, 1, 2, 2, 3, 3, 3, 4, 4, 2, 2, 2, 1],
+        [1, 4, 2, 2, 3, 3, 3, 1, 4, 4, 1, 1, 1, 1],
+        [1, 3, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1],
+        [3, 3, 3, 2, 2, 4, 1, 1, 1, 2, 2, 2, 2, 1],
+        [2, 2, 2, 1, 1, 4, 1, 2, 2, 2, 2, 1, 1, 1],
+        [2, 1, 1, 1, 1, 4, 2, 1, 2, 1, 1, 2, 1, 1],
+        [1, 1, 1, 1, 1, 4, 3, 1, 1, 1, 2, 2, 2, 1],
+        [2, 2, 2, 2, 1, 4, 5, 1, 1, 1, 1, 1, 1, 1]
+    ];
+
+    var waterLiklihoodMatrix = [
+        [.2, 1, .2, .3, .2, .2, .4, .4, .1, .1, .1, .4, .3, .2],
+        [.2, 1, .2, .3, .3, .4, .4, 1, 1, 1, .3, .3, .3, .1],
+        [.2, 1, .3, .3, .3, .4, .4, .1, 1, 1, 1, 1, .1, .1],
+        [.2, .4, 1, .4, .3, 1, .3, .2, 1, .1, .1, .1, .1, .2],
+        [.4, .3, .4, .3, .2, 1, .3, .2, .1, 0, 0, 2, .2, .1],
+        [.3, .3, .3, .2, 1, 1, 0, 0, 0, 0, 0, 1, .1, .2],
+        [.3, .2, .2, 1, 1, 1, 0, 1, 0, .1, .1, .2, .2, .1],
+        [.2, .2, .2, .2, .2, 1, 1, 1, 1, .1, .2, .2, .2, .1],
+        [.2, .2, .2, .1, .1, 1, 1, 1, .1, .1, .2, .1, .2, .1]
+    ];
 
     initializeImagesAndSounds();
     startGame();
+    theCanvas.addEventListener("mouseup", eventMouseUp, false);	
 
     function startGame() {
-        theCanvas = document.getElementById("survivalCanvas");
-        context = theCanvas.getContext("2d");
-
         // If the browser doesn't support canvas exit
         if (!canvasSupport()) {
             return;
@@ -38,6 +71,15 @@
 
         // Place counter on random position on bottom of map
         placeCounterRandomly(hexGrid, context);
+
+        // For test: remove
+        context.drawImage(greenXImage, 0, 0);
+
+        drawPictureImage(crashedPlane);
+        drawRightColumn();
+
+        // Next step: determine adjacent hexes within movement points and display a green X on them
+
         //else {
             //wait for space key click
          //   if (keyPressList[32] == true) {
@@ -50,6 +92,24 @@
             //else
             //startGame(); // Recursively call this function until the space is pressed
         //}
+    }
+
+    function drawPictureImage(currentImage) {
+        context.drawImage(currentImage, 1018, 20);
+    }
+
+    function drawRightColumn() {
+        context.font = "20px serif"
+        context.fillStyle = "white";
+
+        context.fillText("Action Points: " + actionPoints, 1020, 290);
+        context.fillText("Days of Water: " + waterAmount, 1020, 320);
+        context.fillText("Days of Food: " + foodAmount, 1020, 350);
+        context.fillText("Life Points: " + lifePoints, 1020, 380);
+    }
+
+    function eventMouseUp(event) {
+        alert("mouseUp");
     }
 
     // Place the counter on a random location on the bottom of the map
@@ -66,7 +126,7 @@
         var targetHex = hexGrid.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
 
         context.drawImage(pilotImage, targetHex.column, targetHex.row);
-        alert("column = " + playerCounter.x + " row = " + playerCounter.y);
+        //alert("column = " + playerCounter.x + " row = " + playerCounter.y);
     }
 
     // Once the game loads disable the start button
@@ -85,6 +145,12 @@
 
         pilotImage.onload = itemLoaded;
         pilotImage.src = "https://centurionsreview.com/Survival/FighterPilotCounter.gif"
+
+        greenXImage.onload = itemLoaded;
+        greenXImage.src = "https://centurionsreview.com/Survival/greenX.gif"
+
+        crashedPlane.onload = itemLoaded;
+        crashedPlane.src = "https://centurionsreview.com/Survival/CrashedPlane.gif"
 
         return true; // Don't remove
     }

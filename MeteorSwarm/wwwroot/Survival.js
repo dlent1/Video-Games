@@ -1,6 +1,10 @@
 ﻿function survivalApp() {
     const DISPLAY_TITLE_SCREEN = 10;
     const STATE_RESET = 20;
+    const MAX_SOUNDS = 5;
+    const PATH = "https://centurionsreview.com/Survival/";
+
+    var HexGridObject = {};
 
     theCanvas = document.getElementById("survivalCanvas");
     context = theCanvas.getContext("2d");
@@ -12,6 +16,7 @@
     var pilotImage = new Image();
     var greenXImage = new Image();
     var crashedPlane = new Image();
+    var clickSound;
 
     var soundPool = new Array();
     var clickSound;
@@ -28,6 +33,11 @@
     var waterAmount = 4;
     var foodAmount = 3;
     var exhaustion = 0;
+    var moveButton = { x: 1020, y: 440, width: 50, height: 30 };
+    var moveButtonText = { x: 1022, y: 462 };
+    var endTurnButton = { x: 1085, y: 440, width: 80, height: 30 };
+    var endTurnButtonText = { x: 1087, y: 462 };
+    var mouseLocation = { x: null, y: null };
 
     var terrainCostMatrix = [
         [1, 5, 1, 1, 1, 1, 3, 3, 1, 1, 1, 2, 1, 1],
@@ -67,11 +77,11 @@
         // Display background
         context.drawImage(backgroundImage, 0, 0);
 
-        const hexGrid = new HexGrid(context, 46, 0, 0);
-        hexGrid.drawHexGrid(9, 14, 16, 0, true)
+        HexGridObject = new HexGrid(context, 46, 0, 0);
+        HexGridObject.drawHexGrid(9, 14, 16, 0, true)
 
         // Place counter on random position on bottom of map
-        placeCounterRandomly(hexGrid, context);
+        placeCounterRandomly(HexGridObject, context);
 
         // For test: remove
         context.drawImage(greenXImage, 0, 0);
@@ -107,6 +117,24 @@
         context.fillText("Days of Water: " + waterAmount, 1020, 320);
         context.fillText("Days of Food: " + foodAmount, 1020, 350);
         context.fillText("Life Points: " + lifePoints, 1020, 380);
+        context.fillText("Exhaustion: " + exhaustion, 1020, 410);
+
+        // Draw buttons
+        // Move button
+        context.fillStyle = "bisque";
+        context.strokeStyle = "chocolate";
+        context.lineWidth = 1;
+        context.fillRect(moveButton.x, moveButton.y, moveButton.width, moveButton.height);
+        context.strokeRect(moveButton.x, moveButton.y, moveButton.width, moveButton.height);
+        context.fillStyle = "red";
+        context.fillText("Move", moveButtonText.x, moveButtonText.y);
+
+        // End turn button
+        context.fillStyle = "bisque";
+        context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+        context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+        context.fillStyle = "red";
+        context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
 
         // Set back to original values
         context.font = "10px serif";
@@ -114,11 +142,31 @@
     }
 
     function eventMouseUp(event) {
-        alert("mouseUp");
+        if (event.layerX || event.layerX == 0) { // Firefox
+            mouseLocation.x = event.layerX;
+            mouseLocation.y = event.layerY;
+        } else if (event.offsetX || event.offsetX == 0) { // Opera
+            mouseLocation.x = event.offsetX;
+            mouseLocation.y = event.offsetY;
+        }
+
+        // Determine what button or hex was clicked
+        if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
+            if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {
+                //alert("Move button clicked!");
+            }
+        }
+        if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
+            if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
+                //alert("End turn button clicked!");
+            }
+        }
+
+        playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
     }
 
     // Place the counter on a random location on the bottom of the map
-    function placeCounterRandomly(hexGrid, context) {
+    function placeCounterRandomly(HexGridObject, context) {
         var tempRandomNumber = Math.floor(Math.random() * 14);
 
         if (tempRandomNumber == 5 || tempRandomNumber == 6)
@@ -128,7 +176,7 @@
 
         playerCounter.y = 8;
 
-        var targetHex = hexGrid.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+        var targetHex = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
 
         context.drawImage(pilotImage, targetHex.column, targetHex.row);
         //alert("column = " + playerCounter.x + " row = " + playerCounter.y);
@@ -149,13 +197,19 @@
         backgroundImage.src = "https://centurionsreview.com/Survival/SurvivalMap.gif";
 
         pilotImage.onload = itemLoaded;
-        pilotImage.src = "https://centurionsreview.com/Survival/FighterPilotCounter.gif"
+        pilotImage.src = "https://centurionsreview.com/Survival/FighterPilotCounter.gif";
 
         greenXImage.onload = itemLoaded;
-        greenXImage.src = "https://centurionsreview.com/Survival/greenX.gif"
+        greenXImage.src = "https://centurionsreview.com/Survival/greenX.gif";
 
         crashedPlane.onload = itemLoaded;
-        crashedPlane.src = "https://centurionsreview.com/Survival/CrashedPlane.gif"
+        crashedPlane.src = "https://centurionsreview.com/Survival/CrashedPlane.gif";
+
+        clickSound = document.createElement("audio");
+        document.body.appendChild(clickSound);
+        audioType = supportedAudioFormat(clickSound);
+        clickSound.setAttribute("src", "https://centurionsreview.com/Survival/MouseClick." + audioType);
+        clickSound.addEventListener("canplaythrough", itemLoaded, false);
 
         return true; // Don't remove
     }
@@ -164,14 +218,9 @@
 
         loadCount++;
         if (loadCount >= itemsToLoad) {
-            //ufoSound.removeEventListener("canplaythrough", itemLoaded, false);
-            //shootSound.removeEventListener("canplaythrough", itemLoaded, false);
-            //shootSound2.removeEventListener("canplaythrough", itemLoaded, false);
-            //shootSound3.removeEventListener("canplaythrough", itemLoaded, false);
-            //explodeSound.removeEventListener("canplaythrough", itemLoaded, false);
-            //explodeSound2.removeEventListener("canplaythrough", itemLoaded, false);
-            //explodeSound3.removeEventListener("canplaythrough", itemLoaded, false);
-            //soundPool.push({ name: "explode1", element: explodeSound, played: false });
+            clickSound.removeEventListener("canplaythrough", itemLoaded, false);
+            
+            soundPool.push({ name: "MouseClick", element: clickSound, played: false });
             //soundPool.push({ name: "explode1", element: explodeSound2, played: false });
             //soundPool.push({ name: "explode1", element: explodeSound3, played: false });
             //soundPool.push({ name: "shoot1", element: shootSound, played: false });
@@ -179,8 +228,7 @@
             //soundPool.push({ name: "shoot1", element: shootSound3, played: false });
             //soundPool.push({ name: "UFOSound", element: ufoSound, played: false });
 
-            gameState = STATE_RESET;
-
+            //gameState = STATE_RESET;
         }
 
     }

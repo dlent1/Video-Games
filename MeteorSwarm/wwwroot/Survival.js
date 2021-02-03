@@ -5,6 +5,8 @@
     const PATH = "https://centurionsreview.com/Survival/";
 
     var HexGridObject = {};
+    var numRows = 9;
+    var numColumns = 14;
 
     theCanvas = document.getElementById("survivalCanvas");
     context = theCanvas.getContext("2d");
@@ -78,7 +80,7 @@
         context.drawImage(backgroundImage, 0, 0);
 
         HexGridObject = new HexGrid(context, 46, 0, 0);
-        HexGridObject.drawHexGrid(9, 14, 16, 0, true)
+        HexGridObject.drawHexGrid(numRows, numColumns, 16, 0, true)
 
         // Place counter on random position on bottom of map
         placeCounterRandomly(HexGridObject, context);
@@ -142,6 +144,8 @@
     }
 
     function eventMouseUp(event) {
+        var adjacencyList = new Array();
+
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
             mouseLocation.y = event.layerY;
@@ -150,12 +154,15 @@
             mouseLocation.y = event.offsetY;
         }
 
-        // Determine what button or hex was clicked
+        // Check if the move button is clicked
         if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
             if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {
+                adjacencyList = HexGridObject.getAdjacentHexList(playerCounter.x, playerCounter.y, numRows, numColumns);
                 //alert("Move button clicked!");
             }
         }
+
+        // Check if the end turn button is clicked
         if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
             if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
                 //alert("End turn button clicked!");

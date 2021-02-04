@@ -7,6 +7,7 @@
     var HexGridObject = {};
     var numRows = 9;
     var numColumns = 14;
+    var radius = 46;
 
     theCanvas = document.getElementById("survivalCanvas");
     context = theCanvas.getContext("2d");
@@ -30,6 +31,8 @@
     var playerCounter = { x: 0, y: 0 };
     var centeringAdjustmentX = 5;
     var centeringAdjustmentY = 9;
+    var textCenteringAdjustmentX= .6 * radius;
+    var textCenteringAdjustmentY = .56 * radius;
     var actionPoints = 4;
     var lifePoints = 10;
     var waterAmount = 4;
@@ -79,14 +82,11 @@
         // Display background
         context.drawImage(backgroundImage, 0, 0);
 
-        HexGridObject = new HexGrid(context, 46, 0, 0);
+        HexGridObject = new HexGrid(context, radius, 0, 0);
         HexGridObject.drawHexGrid(numRows, numColumns, 16, 0, true)
 
         // Place counter on random position on bottom of map
         placeCounterRandomly(HexGridObject, context);
-
-        // For test: remove
-        context.drawImage(greenXImage, 0, 0);
 
         drawPictureImage(crashedPlane);
         drawRightColumn();
@@ -145,6 +145,7 @@
 
     function eventMouseUp(event) {
         var adjacencyList = new Array();
+        var targetHex
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -158,6 +159,17 @@
         if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
             if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {
                 adjacencyList = HexGridObject.getAdjacentHexList(playerCounter.x, playerCounter.y, numRows, numColumns);
+
+                adjacencyList.forEach(function (hex) {
+                    if ((terrainCostMatrix[hex.y][hex.x] <= actionPoints) && (terrainCostMatrix[hex.y][hex.x] != 5)) {
+                        var targetHex = HexGridObject.getLocationOfHex(hex.x, hex.y, centeringAdjustmentX, centeringAdjustmentY);
+                        context.drawImage(greenXImage, targetHex.column, targetHex.row);
+                        context.font = "18px serif";
+                        context.fillStyle = "#000";
+                        context.textBaseline = "top";
+                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHex.column + textCenteringAdjustmentX, targetHex.row + textCenteringAdjustmentY);
+                    }
+                });
                 //alert("Move button clicked!");
             }
         }

@@ -43,6 +43,8 @@
     var endTurnButton = { x: 1085, y: 440, width: 80, height: 30 };
     var endTurnButtonText = { x: 1087, y: 462 };
     var mouseLocation = { x: null, y: null };
+    var origin = { x: 16, y: 0 };
+    var movementInProgress = false;
 
     var terrainCostMatrix = [
         [1, 5, 1, 1, 1, 1, 3, 3, 1, 1, 1, 2, 1, 1],
@@ -70,7 +72,7 @@
 
     initializeImagesAndSounds();
     startGame();
-    theCanvas.addEventListener("mouseup", eventMouseUp, false);
+    theCanvas.addEventListener("mousedown", eventMouseDown, false);
     startGame();
 
     function startGame() {
@@ -82,8 +84,8 @@
         // Display background
         context.drawImage(backgroundImage, 0, 0);
 
-        HexGridObject = new HexGrid(context, radius, 0, 0);
-        HexGridObject.drawHexGrid(numRows, numColumns, 16, 0, true)
+        HexGridObject = new HexGrid(context, radius, 0, 0, theCanvas);
+        HexGridObject.drawHexGrid(numRows, numColumns, origin.x, origin.y, true);
 
         // Place counter on random position on bottom of map
         placeCounterRandomly(HexGridObject, context);
@@ -143,9 +145,9 @@
         context.fillStyle = "red";
     }
 
-    function eventMouseUp(event) {
+    function eventMouseDown(event) {
         var adjacencyList = new Array();
-        var targetHex
+        var targetHex = {};
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -155,6 +157,25 @@
             mouseLocation.y = event.offsetY;
         }
 
+        // Check if hex was clicked
+        if (movementInProgress) {
+            tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
+
+            // Move to hex if it is adjacent and you have enough action points to do so.
+            var targetHex = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
+            playerCounter = { x: targetHex.column, y: targetHex.row };
+
+            context.drawImage(pilotImage, targetHex.column, targetHex.row);
+            // Uncomment the following 4 lines to debug
+            //context.strokeStyle = "red";
+            //context.linewidth = 1;
+            //context.strokeRect(mouseLocation.x, mouseLocation.y, 5, 5);
+            //alert(tile.column + " " + tile.row + " " + mouseLocation.x + " " + mouseLocation.y);
+
+            
+            //movementInProgress = false;
+
+        }
         // Check if the move button is clicked
         if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
             if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {
@@ -170,7 +191,7 @@
                         context.fillText(terrainCostMatrix[hex.y][hex.x], targetHex.column + textCenteringAdjustmentX, targetHex.row + textCenteringAdjustmentY);
                     }
                 });
-                //alert("Move button clicked!");
+                movementInProgress = true;
             }
         }
 

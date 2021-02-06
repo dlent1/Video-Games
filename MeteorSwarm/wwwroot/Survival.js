@@ -39,12 +39,13 @@
     var foodAmount = 3;
     var exhaustion = 0;
     var moveButton = { x: 1020, y: 440, width: 50, height: 30 };
-    var moveButtonText = { x: 1022, y: 462 };
+    var moveButtonText = { x: 1022, y: 458 };
     var endTurnButton = { x: 1085, y: 440, width: 80, height: 30 };
-    var endTurnButtonText = { x: 1087, y: 462 };
+    var endTurnButtonText = { x: 1087, y: 458 };
     var mouseLocation = { x: null, y: null };
     var origin = { x: 16, y: 0 };
     var movementInProgress = false;
+    var adjacencyList = new Array();
 
     var terrainCostMatrix = [
         [1, 5, 1, 1, 1, 1, 3, 3, 1, 1, 1, 2, 1, 1],
@@ -81,11 +82,8 @@
             return;
         }
 
-        // Display background
-        context.drawImage(backgroundImage, 0, 0);
-
-        HexGridObject = new HexGrid(context, radius, 0, 0, theCanvas);
-        HexGridObject.drawHexGrid(numRows, numColumns, origin.x, origin.y, true);
+        // Display background and grid
+        drawBackgroundAndGrid();
 
         // Place counter on random position on bottom of map
         placeCounterRandomly(HexGridObject, context);
@@ -109,6 +107,14 @@
         //}
     }
 
+    function drawBackgroundAndGrid() {
+        // Display background
+        context.drawImage(backgroundImage, 0, 0);
+
+        HexGridObject = new HexGrid(context, radius, 0, 0, theCanvas);
+        HexGridObject.drawHexGrid(numRows, numColumns, origin.x, origin.y, true);
+    }
+
     function drawPictureImage(currentImage) {
         context.drawImage(currentImage, 1018, 20);
     }
@@ -116,6 +122,7 @@
     function drawRightColumn() {
         context.font = "20px serif"
         context.fillStyle = "white";
+        context.textBaseline = "middle";
 
         context.fillText("Action Points: " + actionPoints, 1020, 290);
         context.fillText("Days of Water: " + waterAmount, 1020, 320);
@@ -145,8 +152,14 @@
         context.fillStyle = "red";
     }
 
+    function refreshScreen(pictureImage, targetColumn, targetRow) {
+        drawBackgroundAndGrid();
+        drawPictureImage(crashedPlane);
+        drawRightColumn();
+        context.drawImage(pilotImage, targetColumn, targetRow);
+    }
+
     function eventMouseDown(event) {
-        var adjacencyList = new Array();
         var targetHex = {};
 
         if (event.layerX || event.layerX == 0) { // Firefox
@@ -160,22 +173,33 @@
         // Check if hex was clicked
         if (movementInProgress) {
             tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
+            var adjacent = false;
+
+            adjacencyList.forEach(function (hex) {
+                if (hex.x == tile.column && hex.y == tile.row)
+                    adjacent = true;
+            });
 
             // Move to hex if it is adjacent and you have enough action points to do so.
-            var targetHex = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
-            playerCounter = { x: targetHex.column, y: targetHex.row };
+            if (adjacent) {
+                var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
+                playerCounter = { x: tile.column, y: tile.row };
+                var cost = terrainCostMatrix[tile.row][tile.column];
+                actionPoints -= cost; // Pay cost of entering hex
 
-            context.drawImage(pilotImage, targetHex.column, targetHex.row);
+                if (actionPoints >= 0) {
+                    refreshScreen(crashedPlane, targetHexPixelCoordinates.column, targetHexPixelCoordinates.row);
+                    movementInProgress = false;
+                }
+            }
+            
             // Uncomment the following 4 lines to debug
             //context.strokeStyle = "red";
             //context.linewidth = 1;
             //context.strokeRect(mouseLocation.x, mouseLocation.y, 5, 5);
             //alert(tile.column + " " + tile.row + " " + mouseLocation.x + " " + mouseLocation.y);
-
-            
-            //movementInProgress = false;
-
         }
+
         // Check if the move button is clicked
         if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
             if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {

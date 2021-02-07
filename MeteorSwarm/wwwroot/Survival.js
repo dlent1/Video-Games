@@ -42,10 +42,13 @@
     var moveButtonText = { x: 1022, y: 458 };
     var endTurnButton = { x: 1085, y: 440, width: 80, height: 30 };
     var endTurnButtonText = { x: 1087, y: 458 };
+    var sleepButton = { x: 1020, y: 490, width: 50, height: 30 };
+    var sleepButtonText = { x: 1022, y: 508 };
     var mouseLocation = { x: null, y: null };
     var origin = { x: 16, y: 0 };
     var movementInProgress = false;
     var adjacencyList = new Array();
+    var sleptAlreadyThisTurn = false;
 
     var terrainCostMatrix = [
         [1, 5, 1, 1, 1, 1, 3, 3, 1, 1, 1, 2, 1, 1],
@@ -147,6 +150,13 @@
         context.fillStyle = "red";
         context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
 
+        // Sleep button
+        context.fillStyle = "bisque";
+        context.fillRect(sleepButton.x, sleepButton.y, sleepButton.width, sleepButton.height);
+        context.strokeRect(sleepButton.x, sleepButton.y, sleepButton.width, sleepButton.height);
+        context.fillStyle = "red";
+        context.fillText("Sleep", sleepButtonText.x, sleepButtonText.y);
+
         // Set back to original values
         context.font = "10px serif";
         context.fillStyle = "red";
@@ -160,7 +170,7 @@
     }
 
     function eventMouseDown(event) {
-        var targetHex = {};
+        var targetHexPixelCoordinates = {};
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -212,12 +222,12 @@
 
                 adjacencyList.forEach(function (hex) {
                     if ((terrainCostMatrix[hex.y][hex.x] <= actionPoints) && (terrainCostMatrix[hex.y][hex.x] != 5)) {
-                        var targetHex = HexGridObject.getLocationOfHex(hex.x, hex.y, centeringAdjustmentX, centeringAdjustmentY);
-                        context.drawImage(greenXImage, targetHex.columnPixel, targetHex.rowPixel);
+                        targetHexPixelCoordinates = HexGridObject.getLocationOfHex(hex.x, hex.y, centeringAdjustmentX, centeringAdjustmentY);
+                        context.drawImage(greenXImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         context.font = "18px serif";
                         context.fillStyle = "#000";
                         context.textBaseline = "top";
-                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHex.columnPixel + textCenteringAdjustmentX, targetHex.rowPixel + textCenteringAdjustmentY);
+                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHexPixelCoordinates.columnPixel + textCenteringAdjustmentX, targetHexPixelCoordinates.rowPixel + textCenteringAdjustmentY);
                     }
                 });
                 movementInProgress = true;
@@ -227,12 +237,36 @@
         // Check if the end turn button is clicked
         if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
             if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
-                var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
                 movementInProgress = false;
                 actionPoints = 4;
                 exhaustion++;
+                sleptAlreadyThisTurn = false;
 
                 refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+            }
+        }
+
+        // Check if sleep button is clicked
+        if (mouseLocation.x >= sleepButton.x && mouseLocation.y >= sleepButton.y) {
+            if (mouseLocation.x <= (sleepButton.x + sleepButton.width) && mouseLocation.y <= (sleepButton.y + sleepButton.height)) {
+                if (actionPoints > 0) {
+                    if (sleptAlreadyThisTurn == false) {
+                        if (exhaustion > 0) {
+                            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                            actionPoints--;
+                            exhaustion--;
+                            sleptAlreadyThisTurn = true;
+                            refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                        }
+                        else
+                            alert("You not able to fall sleep this turn, because you have 0 exhaustion!");
+                    }
+                    else
+                        alert("You can't sleep, because you already slept once this turn!");
+                }
+                else
+                    alert("You need at least 1 action point to sleep!");
             }
         }
 

@@ -152,11 +152,11 @@
         context.fillStyle = "red";
     }
 
-    function refreshScreen(pictureImage, targetColumn, targetRow) {
+    function refreshScreen(pictureImage, targetHexX, targetHexY) {
         drawBackgroundAndGrid();
         drawPictureImage(crashedPlane);
         drawRightColumn();
-        context.drawImage(pilotImage, targetColumn, targetRow);
+        context.drawImage(pilotImage, targetHexX, targetHexY);
     }
 
     function eventMouseDown(event) {
@@ -188,7 +188,7 @@
                 actionPoints -= cost; // Pay cost of entering hex
 
                 if (actionPoints >= 0) {
-                    refreshScreen(crashedPlane, targetHexPixelCoordinates.column, targetHexPixelCoordinates.row);
+                    refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                     movementInProgress = false;
                 }
             }
@@ -203,16 +203,21 @@
         // Check if the move button is clicked
         if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
             if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {
+                if (actionPoints <= 0) {
+                    alert("You are out of action points.  Click \"End Turn\"");
+                    return;
+                }
+
                 adjacencyList = HexGridObject.getAdjacentHexList(playerCounter.x, playerCounter.y, numRows, numColumns);
 
                 adjacencyList.forEach(function (hex) {
                     if ((terrainCostMatrix[hex.y][hex.x] <= actionPoints) && (terrainCostMatrix[hex.y][hex.x] != 5)) {
                         var targetHex = HexGridObject.getLocationOfHex(hex.x, hex.y, centeringAdjustmentX, centeringAdjustmentY);
-                        context.drawImage(greenXImage, targetHex.column, targetHex.row);
+                        context.drawImage(greenXImage, targetHex.columnPixel, targetHex.rowPixel);
                         context.font = "18px serif";
                         context.fillStyle = "#000";
                         context.textBaseline = "top";
-                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHex.column + textCenteringAdjustmentX, targetHex.row + textCenteringAdjustmentY);
+                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHex.columnPixel + textCenteringAdjustmentX, targetHex.rowPixel + textCenteringAdjustmentY);
                     }
                 });
                 movementInProgress = true;
@@ -222,7 +227,12 @@
         // Check if the end turn button is clicked
         if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
             if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
-                //alert("End turn button clicked!");
+                var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                movementInProgress = false;
+                actionPoints = 4;
+                exhaustion++;
+
+                refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
             }
         }
 
@@ -242,7 +252,7 @@
 
         var targetHex = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
 
-        context.drawImage(pilotImage, targetHex.column, targetHex.row);
+        context.drawImage(pilotImage, targetHex.columnPixel, targetHex.rowPixel);
         //alert("column = " + playerCounter.x + " row = " + playerCounter.y);
     }
 

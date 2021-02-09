@@ -52,12 +52,12 @@
         else {
             if (x - 1 >= 0) {
                 adjacencyList.push({ x: x - 1, y: y });
-                if (y + 1 > rows)
+                if (y + 1 < rows)
                     adjacencyList.push({ x: x - 1, y: y + 1 });
             }
             if (x + 1 < columns) {
                 adjacencyList.push({ x: x + 1, y: y });
-                if (y + 1 > rows)
+                if (y + 1 < rows)
                     adjacencyList.push({ x: x + 1, y: y + 1 });
             }            
         }

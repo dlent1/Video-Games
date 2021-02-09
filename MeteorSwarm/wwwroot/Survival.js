@@ -38,12 +38,10 @@
     var waterAmount = 4;
     var foodAmount = 3;
     var exhaustion = 0;
-    var moveButton = { x: 1020, y: 440, width: 50, height: 30 };
-    var moveButtonText = { x: 1022, y: 458 };
-    var endTurnButton = { x: 1085, y: 440, width: 80, height: 30 };
-    var endTurnButtonText = { x: 1087, y: 458 };
-    var sleepButton = { x: 1020, y: 490, width: 50, height: 30 };
-    var sleepButtonText = { x: 1022, y: 508 };
+    var endTurnButton = { x: 1020, y: 440, width: 80, height: 30 };
+    var endTurnButtonText = { x: 1022, y: 458 };
+    var sleepButton = { x: 1115, y: 440, width: 50, height: 30 };
+    var sleepButtonText = { x: 1117, y: 458 };
     var mouseLocation = { x: null, y: null };
     var origin = { x: 16, y: 0 };
     var movementInProgress = false;
@@ -134,15 +132,6 @@
         context.fillText("Exhaustion: " + exhaustion, 1020, 410);
 
         // Draw buttons
-        // Move button
-        context.fillStyle = "bisque";
-        context.strokeStyle = "chocolate";
-        context.lineWidth = 1;
-        context.fillRect(moveButton.x, moveButton.y, moveButton.width, moveButton.height);
-        context.strokeRect(moveButton.x, moveButton.y, moveButton.width, moveButton.height);
-        context.fillStyle = "red";
-        context.fillText("Move", moveButtonText.x, moveButtonText.y);
-
         // End turn button
         context.fillStyle = "bisque";
         context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
@@ -171,6 +160,7 @@
 
     function eventMouseDown(event) {
         var targetHexPixelCoordinates = {};
+        var tile = {};
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -180,7 +170,7 @@
             mouseLocation.y = event.offsetY;
         }
 
-        // Check if hex was clicked
+        // Check if adjacent hex was clicked
         if (movementInProgress) {
             tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
             var adjacent = false;
@@ -210,41 +200,10 @@
             //alert(tile.column + " " + tile.row + " " + mouseLocation.x + " " + mouseLocation.y);
         }
 
-        // Check if the move button is clicked
-        if (mouseLocation.x >= moveButton.x && mouseLocation.y >= moveButton.y) {
-            if (mouseLocation.x <= (moveButton.x + moveButton.width) && mouseLocation.y <= (moveButton.y + moveButton.height)) {
-                if (actionPoints <= 0) {
-                    alert("You are out of action points.  Click \"End Turn\"");
-                    return;
-                }
-
-                adjacencyList = HexGridObject.getAdjacentHexList(playerCounter.x, playerCounter.y, numRows, numColumns);
-
-                adjacencyList.forEach(function (hex) {
-                    if ((terrainCostMatrix[hex.y][hex.x] <= actionPoints) && (terrainCostMatrix[hex.y][hex.x] != 5)) {
-                        targetHexPixelCoordinates = HexGridObject.getLocationOfHex(hex.x, hex.y, centeringAdjustmentX, centeringAdjustmentY);
-                        context.drawImage(greenXImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                        context.font = "18px serif";
-                        context.fillStyle = "#000";
-                        context.textBaseline = "top";
-                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHexPixelCoordinates.columnPixel + textCenteringAdjustmentX, targetHexPixelCoordinates.rowPixel + textCenteringAdjustmentY);
-                    }
-                });
-                movementInProgress = true;
-            }
-        }
-
         // Check if the end turn button is clicked
         if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
-            if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
-                targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                movementInProgress = false;
-                actionPoints = 4;
-                exhaustion++;
-                sleptAlreadyThisTurn = false;
-
-                refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-            }
+            if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) 
+                endTurn();
         }
 
         // Check if sleep button is clicked
@@ -257,6 +216,7 @@
                             actionPoints--;
                             exhaustion--;
                             sleptAlreadyThisTurn = true;
+                            movementInProgress = false;
                             refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         }
                         else
@@ -270,7 +230,49 @@
             }
         }
 
+        // Check if player counter was clicked
+        if (!movementInProgress) {
+            tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
+
+            if (tile.column == playerCounter.x && tile.row == playerCounter.y) {
+                adjacencyList = HexGridObject.getAdjacentHexList(playerCounter.x, playerCounter.y, numRows, numColumns);
+
+                adjacencyList.forEach(function (hex) {
+                    if ((terrainCostMatrix[hex.y][hex.x] <= actionPoints) && (terrainCostMatrix[hex.y][hex.x] != 5)) {
+                        targetHexPixelCoordinates = HexGridObject.getLocationOfHex(hex.x, hex.y, centeringAdjustmentX, centeringAdjustmentY);
+                        context.drawImage(greenXImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                        context.font = "18px serif";
+                        context.fillStyle = "#000";
+                        context.textBaseline = "top";
+                        context.fillText(terrainCostMatrix[hex.y][hex.x], targetHexPixelCoordinates.columnPixel + textCenteringAdjustmentX, targetHexPixelCoordinates.rowPixel + textCenteringAdjustmentY);
+                    }
+                });
+
+                if (actionPoints <= 0) {
+                    setTimeout(function () {
+                        alert("You are out of action points.  Your turn has ended!");
+                        endTurn();
+
+                    }, 100);
+                    
+                    return;
+                }
+
+                movementInProgress = true;
+            }
+        }
+
         playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
+    }
+
+    function endTurn() {
+        var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+        movementInProgress = false;
+        actionPoints = 4;
+        exhaustion++;
+        sleptAlreadyThisTurn = false;
+
+        refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
     }
 
     // Place the counter on a random location on the bottom of the map

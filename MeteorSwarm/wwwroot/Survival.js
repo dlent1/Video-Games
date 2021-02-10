@@ -73,7 +73,6 @@
     ];
 
     initializeImagesAndSounds();
-    startGame();
     theCanvas.addEventListener("mousedown", eventMouseDown, false);
     startGame();
 
@@ -272,7 +271,47 @@
         exhaustion++;
         sleptAlreadyThisTurn = false;
 
-        refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+        // Check if you've won the game
+        if (playerCounter.x == 0 && playerCounter.y == 0) {
+            endGame(true);
+            return;
+        }
+
+        if (exhaustion > 3)
+            lifePoints--;
+
+        if (foodAmount > 0)
+            foodAmount--;
+        else
+            lifePoints--;
+
+        if (waterAmount > 0)
+            waterAmount--;
+        else
+            lifePoints -= 2; 
+
+        if (lifePoints <= 0) {
+            endGame(false);
+            return;
+        }    
+        else
+            refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+    }
+
+    function endGame(won) {
+        lifePoints = 10;
+        waterAmount = 4;
+        foodAmount = 3;
+        exhaustion = 0;
+
+        if (!won) {
+            alert("Game over.  Your life points fell to zero.  Try again.");
+            startGame();
+        }
+        else {
+            alert("Congratulation!  You have made it to civilization and won the game!")
+            startGame();
+        }
     }
 
     // Place the counter on a random location on the bottom of the map

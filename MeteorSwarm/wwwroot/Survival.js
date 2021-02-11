@@ -42,6 +42,8 @@
     var endTurnButtonText = { x: 1022, y: 458 };
     var sleepButton = { x: 1115, y: 440, width: 50, height: 30 };
     var sleepButtonText = { x: 1117, y: 458 };
+    var huntButton = { x: 1020, y: 490, width: 45, height: 30 };
+    var huntButtonText = { x: 1022, y: 508 };
     var mouseLocation = { x: null, y: null };
     var origin = { x: 16, y: 0 };
     var movementInProgress = false;
@@ -60,7 +62,7 @@
         [2, 2, 2, 2, 1, 4, 5, 1, 1, 1, 1, 1, 1, 1]
     ];
 
-    var waterLiklihoodMatrix = [
+    var waterLikelihoodMatrix = [
         [.2, 1, .2, .3, .2, .2, .4, .4, .1, .1, .1, .4, .3, .2],
         [.2, 1, .2, .3, .3, .4, .4, 1, 1, 1, .3, .3, .3, .1],
         [.2, 1, .3, .3, .3, .4, .4, .1, 1, 1, 1, 1, .1, .1],
@@ -145,6 +147,13 @@
         context.fillStyle = "red";
         context.fillText("Sleep", sleepButtonText.x, sleepButtonText.y);
 
+        // Hunt button
+        context.fillStyle = "bisque";
+        context.fillRect(huntButton.x, huntButton.y, huntButton.width, huntButton.height);
+        context.strokeRect(huntButton.x, huntButton.y, huntButton.width, huntButton.height);
+        context.fillStyle = "red";
+        context.fillText("Hunt", huntButtonText.x, huntButtonText.y);
+
         // Set back to original values
         context.font = "10px serif";
         context.fillStyle = "red";
@@ -160,6 +169,8 @@
     function eventMouseDown(event) {
         var targetHexPixelCoordinates = {};
         var tile = {};
+        var huntResult;
+        var huntLikelihood;
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -203,6 +214,58 @@
         if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
             if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) 
                 endTurn();
+        }
+
+        // Check if the hunt button is clicked
+        if (mouseLocation.x >= huntButton.x && mouseLocation.y >= huntButton.y) {
+            if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) {
+                if (actionPoints > 0) {
+                    actionPoints--;
+
+                    huntResult = Math.floor(Math.random() * 10);
+
+                    switch (terrainCostMatrix[playerCounter.y][playerCounter.x]) {
+                        case 4:
+                            huntLikelihood = 5;
+                            break;
+                        case 3:
+                            huntLikelihood = 7;
+                            break;
+                        case 2:
+                            huntLikelihood = 6;
+                        case 1:
+                            huntLikelihood = 7;
+                    }
+
+                    if (huntResult >= huntLikelihood) {
+                        foodAmount += 10 - huntResult;
+
+                        if (foodAmount > 3)
+                            foodAmount = 3; // Max food is 3
+
+                        if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 1)
+                            alert("You caught some fish! You now have " + foodAmount + " " + "days of food");
+                        else
+                            alert("Successful hunt! You now have " + foodAmount + " " + "days of food");
+                    }
+                    else {
+                        alert("Your hunt was unsuccessful.");
+                    }
+
+                    targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                    refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                }
+                else
+                    setTimeout(function () {
+                        alert("You are out of action points and cannot hunt.  Your turn has ended!");
+                        endTurn();
+
+                    }, 100);
+
+                return;
+                
+            }
+                
         }
 
         // Check if sleep button is clicked

@@ -44,6 +44,8 @@
     var sleepButtonText = { x: 1117, y: 458 };
     var huntButton = { x: 1020, y: 490, width: 45, height: 30 };
     var huntButtonText = { x: 1022, y: 508 };
+    var waterButton = { x: 1080, y: 490, width: 113, height: 30 };
+    var waterButtonText = { x: 1082, y: 508 };
     var mouseLocation = { x: null, y: null };
     var origin = { x: 16, y: 0 };
     var movementInProgress = false;
@@ -63,15 +65,15 @@
     ];
 
     var waterLikelihoodMatrix = [
-        [.2, 1, .2, .3, .2, .2, .4, .4, .1, .1, .1, .4, .3, .2],
-        [.2, 1, .2, .3, .3, .4, .4, 1, 1, 1, .3, .3, .3, .1],
-        [.2, 1, .3, .3, .3, .4, .4, .1, 1, 1, 1, 1, .1, .1],
-        [.2, .4, 1, .4, .3, 1, .3, .2, 1, .1, .1, .1, .1, .2],
-        [.4, .3, .4, .3, .2, 1, .3, .2, .1, 0, 0, 2, .2, .1],
-        [.3, .3, .3, .2, 1, 1, 0, 0, 0, 0, 0, 1, .1, .2],
-        [.3, .2, .2, 1, 1, 1, 0, 1, 0, .1, .1, .2, .2, .1],
-        [.2, .2, .2, .2, .2, 1, 1, 1, 1, .1, .2, .2, .2, .1],
-        [.2, .2, .2, .1, .1, 1, 1, 1, .1, .1, .2, .1, .2, .1]
+        [2, 10, 2, 3, 2, 2, 4, 4, 1, 1, 1, 4, 3, 2],
+        [2, 10, 2, 3, 3, 4, 4, 10, 10, 10, 3, 3, 3, 1],
+        [2, 10, 3, 3, 3, 4, 4, 1, 10, 10, 10, 10, 1, 1],
+        [2, 4, 10, 4, 3, 10, 3, 2, 10, 1, 1, 1, 1, 2],
+        [4, 3, 4, 3, 2, 10, 3, 2, 1, 0, 0, 2, 2, 1],
+        [3, 3, 3, 2, 10, 10, 0, 0, 0, 0, 0, 10, 1, 2],
+        [3, 2, 2, 10, 10, 10, 0, 10, 0, 1, 1, 2, 2, 1],
+        [2, 2, 2, 2, 2, 10, 10, 10, 10, 1, 2, 2, 2, 1],
+        [2, 2, 2, 1, 1, 10, 10, 10, 1, 1, 2, 1, 2, 1]
     ];
 
     initializeImagesAndSounds();
@@ -92,21 +94,6 @@
 
         drawPictureImage(crashedPlane);
         drawRightColumn();
-
-        // Next step: determine adjacent hexes within movement points and display a green X on them
-
-        //else {
-            //wait for space key click
-         //   if (keyPressList[32] == true) {
-                //ConsoleLog.log("space pressed");
-                // switchGameState(GAME_STATE_NEW_GAME);
-                //titleStarted = false;
-                // call setinterval to begin the main game loop
-
-        //    }
-            //else
-            //startGame(); // Recursively call this function until the space is pressed
-        //}
     }
 
     function drawBackgroundAndGrid() {
@@ -154,6 +141,13 @@
         context.fillStyle = "red";
         context.fillText("Hunt", huntButtonText.x, huntButtonText.y);
 
+        // Water button
+        context.fillStyle = "bisque";
+        context.fillRect(waterButton.x, waterButton.y, waterButton.width, waterButton.height);
+        context.strokeRect(waterButton.x, waterButton.y, waterButton.width, waterButton.height);
+        context.fillStyle = "red";
+        context.fillText("Gather Water", waterButtonText.x, waterButtonText.y);
+
         // Set back to original values
         context.font = "10px serif";
         context.fillStyle = "red";
@@ -171,6 +165,7 @@
         var tile = {};
         var huntResult;
         var huntLikelihood;
+        var waterResult;
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -216,13 +211,44 @@
                 endTurn();
         }
 
-        // Check if the hunt button is clicked
+        // Check if the gather water button was clicked
+        if (mouseLocation.x >= waterButton.x && mouseLocation.y >= waterButton.y) {
+            if (mouseLocation.x <= (waterButton.x + waterButton.width) && mouseLocation.y <= (waterButton.y + waterButton.height)) {
+                if (actionPoints > 0) {
+                    actionPoints--;
+
+                    waterResult = Math.floor(Math.random() * 10) + 1;
+
+                    if (waterResult <= waterLikelihoodMatrix[playerCounter.y][playerCounter.x]) {
+                        waterAmount = 4;
+                        alert("You have found water and filled all four of your bottles!");
+                    }
+                    else {
+                        alert("You didn't find any water.");
+                    }
+
+                    targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                    refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                }
+                else {
+                    setTimeout(function () {
+                        alert("You are out of action points and cannot gather water.  Your turn has ended!");
+                        endTurn();
+
+                    }, 100);
+
+                    return;
+                }
+            }
+        }
+
+        // Check if the hunt button was clicked
         if (mouseLocation.x >= huntButton.x && mouseLocation.y >= huntButton.y) {
             if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) {
                 if (actionPoints > 0) {
                     actionPoints--;
 
-                    huntResult = Math.floor(Math.random() * 10);
+                    huntResult = Math.floor(Math.random() * 10) + 1;
 
                     switch (terrainCostMatrix[playerCounter.y][playerCounter.x]) {
                         case 4:
@@ -238,12 +264,12 @@
                     }
 
                     if (huntResult >= huntLikelihood) {
-                        foodAmount += 10 - huntResult;
+                        foodAmount += 10 - huntResult + 1;
 
                         if (foodAmount > 3)
                             foodAmount = 3; // Max food is 3
 
-                        if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 1)
+                        if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 10)
                             alert("You caught some fish! You now have " + foodAmount + " " + "days of food");
                         else
                             alert("Successful hunt! You now have " + foodAmount + " " + "days of food");

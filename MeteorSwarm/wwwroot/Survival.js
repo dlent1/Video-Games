@@ -65,8 +65,8 @@
     ];
 
     var waterLikelihoodMatrix = [
-        [2, 10, 2, 3, 2, 2, 4, 4, 1, 1, 1, 4, 3, 2],
-        [2, 10, 2, 3, 3, 4, 4, 10, 10, 10, 3, 3, 3, 1],
+        [10, 10, 2, 3, 2, 2, 4, 4, 1, 1, 1, 4, 3, 2],
+        [10, 10, 10, 3, 3, 4, 4, 10, 10, 10, 3, 3, 3, 1],
         [2, 10, 3, 3, 3, 4, 4, 1, 10, 10, 10, 10, 1, 1],
         [2, 4, 10, 4, 3, 10, 3, 2, 10, 1, 1, 1, 1, 2],
         [4, 3, 4, 3, 2, 10, 3, 2, 1, 0, 0, 2, 2, 1],
@@ -193,8 +193,19 @@
                 actionPoints -= cost; // Pay cost of entering hex
 
                 if (actionPoints >= 0) {
+                    if (playerCounter.x == 6 && playerCounter.y == 2) { // It's the cave
+                        actionPoints = 4;
+                        exhaustion = 0;
+                    }
+
                     refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                     movementInProgress = false;
+
+                    if (playerCounter.x == 6 && playerCounter.y == 2) {
+                        setTimeout(function () {
+                            alert("You rested in the cave and regained your action points and are no longer exhausted!");
+                        }, 100);
+                    }    
                 }
             }
             

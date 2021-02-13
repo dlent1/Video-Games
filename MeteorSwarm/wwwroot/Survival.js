@@ -20,6 +20,9 @@
     var greenXImage = new Image();
     var crashedPlane = new Image();
     var clickSound;
+    var tRexSound;
+    var stegasaurusSound;
+    var triceratopsSound;
 
     var soundPool = new Array();
     var clickSound;
@@ -460,6 +463,24 @@
         clickSound.setAttribute("src", "https://centurionsreview.com/Survival/MouseClick." + audioType);
         clickSound.addEventListener("canplaythrough", itemLoaded, false);
 
+        tRexSound = document.createElement("audio");
+        document.body.appendChild(tRexSound);
+        audioType = supportedAudioFormat(tRexSound);
+        tRexSound.setAttribute("src", "https://centurionsreview.com/Survival/TRexScream." + audioType);
+        tRexSound.addEventListener("canplaythrough", itemLoaded, false);
+
+        stegasaurusSound = document.createElement("audio");
+        document.body.appendChild(stegasaurusSound);
+        audioType = supportedAudioFormat(stegasaurusSound);
+        stegasaurusSound.setAttribute("src", "https://centurionsreview.com/Survival/StegasaurusGrowl." + audioType);
+        stegasaurusSound.addEventListener("canplaythrough", itemLoaded, false);
+
+        triceratopsSound = document.createElement("audio");
+        document.body.appendChild(triceratopsSound);
+        audioType = supportedAudioFormat(triceratopsSound);
+        triceratopsSound.setAttribute("src", "https://centurionsreview.com/Survival/TriceratopsGrowl." + audioType);
+        triceratopsSound.addEventListener("canplaythrough", itemLoaded, false);
+
         return true; // Don't remove
     }
 
@@ -470,16 +491,10 @@
             clickSound.removeEventListener("canplaythrough", itemLoaded, false);
             
             soundPool.push({ name: "MouseClick", element: clickSound, played: false });
-            //soundPool.push({ name: "explode1", element: explodeSound2, played: false });
-            //soundPool.push({ name: "explode1", element: explodeSound3, played: false });
-            //soundPool.push({ name: "shoot1", element: shootSound, played: false });
-            //soundPool.push({ name: "shoot1", element: shootSound2, played: false });
-            //soundPool.push({ name: "shoot1", element: shootSound3, played: false });
-            //soundPool.push({ name: "UFOSound", element: ufoSound, played: false });
-
-            //gameState = STATE_RESET;
+            soundPool.push({ name: "TRexScream", element: tRexSound, played: false });
+            soundPool.push({ name: "StegasaurusGrowl", element: stegasaurusSound, played: false });
+            soundPool.push({ name: "TriceratopsGrowl", element: triceratopsSound, played: false });
         }
-
     }
 }
 

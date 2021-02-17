@@ -8,6 +8,11 @@
     var numRows = 9;
     var numColumns = 14;
     var radius = 46;
+    var monsterAlive = false;
+    var monster = [{ name: "Stegasaurus", imageURL: "https://centurionsreview.com/Survival/StegasaurusFinal.png", sound: "https://centurionsreview.com/Survival/StegasaurusGrowl.", hp: 2, attack: 2 },
+    { name: "Triceratops", imageURL: "https://centurionsreview.com/Survival/TriceratopsFinal.png", sound: "https://centurionsreview.com/Survival/TriceratopsGrowl.", hp: 3, attack: 3 },
+    { name: "Tyrannosaurus Rex", imageURL: "https://centurionsreview.com/Survival/TyrannosaurusRexFinal.png", sound: "https://centurionsreview.com/Survival/TRexScream.", hp: 4, attack: 4 }
+    ];
 
     theCanvas = document.getElementById("survivalCanvas");
     context = theCanvas.getContext("2d");
@@ -18,7 +23,8 @@
     var backgroundImage = new Image();
     var pilotImage = new Image();
     var greenXImage = new Image();
-    var crashedPlane = new Image();
+    var crashedPlaneImage = new Image();
+    var dinosaurImage = new Image();
     var clickSound;
     var tRexSound;
     var stegasaurusSound;
@@ -95,7 +101,7 @@
         // Place counter on random position on bottom of map
         placeCounterRandomly(HexGridObject, context);
 
-        drawPictureImage(crashedPlane);
+        drawPictureImage(crashedPlaneImage);
         drawRightColumn();
     }
 
@@ -158,7 +164,7 @@
 
     function refreshScreen(pictureImage, targetHexX, targetHexY) {
         drawBackgroundAndGrid();
-        drawPictureImage(crashedPlane);
+        drawPictureImage(crashedPlaneImage);
         drawRightColumn();
         context.drawImage(pilotImage, targetHexX, targetHexY);
     }
@@ -201,7 +207,7 @@
                         exhaustion = 0;
                     }
 
-                    refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                    refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                     movementInProgress = false;
 
                     if (playerCounter.x == 6 && playerCounter.y == 2) {
@@ -210,6 +216,9 @@
                         }, 100);
                     }    
                 }
+
+                // Check for monster
+                monsterCheck();
             }
             
             // Uncomment the following 4 lines to debug
@@ -242,7 +251,7 @@
                     }
 
                     targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                    refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                    refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                 }
                 else {
                     setTimeout(function () {
@@ -293,7 +302,7 @@
                     }
 
                     targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                    refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                    refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                 }
                 else
                     setTimeout(function () {
@@ -319,7 +328,7 @@
                             exhaustion--;
                             sleptAlreadyThisTurn = true;
                             movementInProgress = false;
-                            refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         }
                         else
                             alert("You not able to fall sleep this turn, because you have 0 exhaustion!");
@@ -367,6 +376,24 @@
         playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
     }
 
+    function monsterCheck() {
+        var currentMonster;
+        monsterAlive = true;
+
+        // Randomly determine monster type
+        currentMonster = Math.floor(Math.random() * 3);
+
+        setTimeout(function () {
+            alert("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
+        }, 100);
+
+        dinosaurImage.src = monster[currentMonster].imageURL;
+        dinosaurSound.setAttribute("src", sound + audioType);
+
+        // Display monster image and refresh
+        refreshScreen(dinosaurImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+    }
+
     function endTurn() {
         var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
         movementInProgress = false;
@@ -398,7 +425,7 @@
             return;
         }    
         else
-            refreshScreen(crashedPlane, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
     }
 
     function endGame(won) {
@@ -454,8 +481,11 @@
         greenXImage.onload = itemLoaded;
         greenXImage.src = "https://centurionsreview.com/Survival/greenX.gif";
 
-        crashedPlane.onload = itemLoaded;
-        crashedPlane.src = "https://centurionsreview.com/Survival/CrashedPlane.gif";
+        crashedPlaneImage.onload = itemLoaded;
+        crashedPlaneImage.src = "https://centurionsreview.com/Survival/CrashedPlane.gif";
+
+        dinosaurImage.onload = itemLoaded;
+        dinosaurImage.src = "https://centurionsreview.com/Survival/Stegasaurusfinal.png";
 
         clickSound = document.createElement("audio");
         document.body.appendChild(clickSound);
@@ -463,23 +493,12 @@
         clickSound.setAttribute("src", "https://centurionsreview.com/Survival/MouseClick." + audioType);
         clickSound.addEventListener("canplaythrough", itemLoaded, false);
 
-        tRexSound = document.createElement("audio");
-        document.body.appendChild(tRexSound);
-        audioType = supportedAudioFormat(tRexSound);
-        tRexSound.setAttribute("src", "https://centurionsreview.com/Survival/TRexScream." + audioType);
-        tRexSound.addEventListener("canplaythrough", itemLoaded, false);
-
-        stegasaurusSound = document.createElement("audio");
-        document.body.appendChild(stegasaurusSound);
-        audioType = supportedAudioFormat(stegasaurusSound);
-        stegasaurusSound.setAttribute("src", "https://centurionsreview.com/Survival/StegasaurusGrowl." + audioType);
-        stegasaurusSound.addEventListener("canplaythrough", itemLoaded, false);
-
-        triceratopsSound = document.createElement("audio");
-        document.body.appendChild(triceratopsSound);
-        audioType = supportedAudioFormat(triceratopsSound);
-        triceratopsSound.setAttribute("src", "https://centurionsreview.com/Survival/TriceratopsGrowl." + audioType);
-        triceratopsSound.addEventListener("canplaythrough", itemLoaded, false);
+        // The audio file gets reset for the current dinosaur in play
+        dinosaurSound = document.createElement("audio");
+        document.body.appendChild(dinosaurSound);
+        audioType = supportedAudioFormat(dinosaurSound);
+        dinosaurSound.setAttribute("src", "https://centurionsreview.com/Survival/TRexScream." + audioType);
+        dinosaurSound.addEventListener("canplaythrough", itemLoaded, false);
 
         return true; // Don't remove
     }

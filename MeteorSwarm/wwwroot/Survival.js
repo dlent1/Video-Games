@@ -164,7 +164,7 @@
 
     function refreshScreen(pictureImage, targetHexX, targetHexY) {
         drawBackgroundAndGrid();
-        drawPictureImage(crashedPlaneImage);
+        drawPictureImage(pictureImage);
         drawRightColumn();
         context.drawImage(pilotImage, targetHexX, targetHexY);
     }
@@ -378,6 +378,9 @@
 
     function monsterCheck() {
         var currentMonster;
+        var tile;
+        var targetHexPixelCoordinates;
+
         monsterAlive = true;
 
         // Randomly determine monster type
@@ -388,7 +391,10 @@
         }, 100);
 
         dinosaurImage.src = monster[currentMonster].imageURL;
-        dinosaurSound.setAttribute("src", sound + audioType);
+        dinosaurSound.setAttribute("src", monster[currentMonster].sound + audioType);
+
+        tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
+        targetHexPixelCoordinates = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
 
         // Display monster image and refresh
         refreshScreen(dinosaurImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
@@ -485,7 +491,7 @@
         crashedPlaneImage.src = "https://centurionsreview.com/Survival/CrashedPlane.gif";
 
         dinosaurImage.onload = itemLoaded;
-        dinosaurImage.src = "https://centurionsreview.com/Survival/Stegasaurusfinal.png";
+        dinosaurImage.src = "https://centurionsreview.com/Survival/StegasaurusFinal.png";
 
         clickSound = document.createElement("audio");
         document.body.appendChild(clickSound);

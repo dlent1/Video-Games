@@ -6,6 +6,16 @@
     <script type="text/javascript" src="Survival.js"></script>
     <script type="text/javascript" src="HexGameEngineVersion1.js"></script>
     <script src="modernizr-1.6.min.js"></script>
+
+    <!-- Remove these jQuery script sources after when deploying to server-->
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <!-- End stuff to remove -->
+
+    <script>jQuery(function () {
+            jQuery('#survivalDialog').dialog({ autoOpen: false });
+        });</script>
 </head>
 <body>
     <link rel="preload" as="image" href="https://centurionsreview.com/Survival/SurvivalMap.gif" />
@@ -21,6 +31,11 @@
             Your browser does not support the HTML 5 Canvas.
         </canvas>
 
+    </div>
+    <div id="survivalDialog" title="Combat Window" style="display: none;">
+        <p id="dialogParagraph"></p>
+        <input id="shootButton" type="button" value="Fire Laser Pistol" onclick="shoot()" />
+        <input id="closeButton" type="button" value="Close" onclick="jQuery('#survivalDialog').dialog('close')" />
     </div>
 </body>
 </html>

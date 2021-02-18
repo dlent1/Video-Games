@@ -9,9 +9,9 @@
     var numColumns = 14;
     var radius = 46;
     var monsterAlive = false;
-    var monster = [{ name: "Stegasaurus", imageURL: "https://centurionsreview.com/Survival/StegasaurusFinal.png", sound: "https://centurionsreview.com/Survival/StegasaurusGrowl.", hp: 2, attack: 2 },
-    { name: "Triceratops", imageURL: "https://centurionsreview.com/Survival/TriceratopsFinal.png", sound: "https://centurionsreview.com/Survival/TriceratopsGrowl.", hp: 3, attack: 3 },
-    { name: "Tyrannosaurus Rex", imageURL: "https://centurionsreview.com/Survival/TyrannosaurusRexFinal.png", sound: "https://centurionsreview.com/Survival/TRexScream.", hp: 4, attack: 4 }
+    var monster = [{ name: "Stegasaurus", imageURL: "https://centurionsreview.com/Survival/StegasaurusFinal.png", sound: "StegasaurusGrowl", hp: 2, attack: 2 },
+    { name: "Triceratops", imageURL: "https://centurionsreview.com/Survival/TriceratopsFinal.png", sound: "TriceratopsGrowl", hp: 3, attack: 3 },
+    { name: "Tyrannosaurus Rex", imageURL: "https://centurionsreview.com/Survival/TyrannosaurusRexFinal.png", sound: "TRexScream", hp: 4, attack: 4 }
     ];
 
     theCanvas = document.getElementById("survivalCanvas");
@@ -387,17 +387,19 @@
         currentMonster = Math.floor(Math.random() * 3);
 
         setTimeout(function () {
-            alert("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
+            //alert("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
+            jQuery('#dialogParagraph').text("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
+            jQuery('#survivalDialog').dialog('open');
         }, 100);
 
         dinosaurImage.src = monster[currentMonster].imageURL;
-        dinosaurSound.setAttribute("src", monster[currentMonster].sound + audioType);
 
         tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
         targetHexPixelCoordinates = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
 
         // Display monster image and refresh
         refreshScreen(dinosaurImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+        playSound(monster[currentMonster].sound, .5, soundPool, MAX_SOUNDS, PATH);
     }
 
     function endTurn() {
@@ -516,9 +518,7 @@
             clickSound.removeEventListener("canplaythrough", itemLoaded, false);
             
             soundPool.push({ name: "MouseClick", element: clickSound, played: false });
-            soundPool.push({ name: "TRexScream", element: tRexSound, played: false });
-            soundPool.push({ name: "StegasaurusGrowl", element: stegasaurusSound, played: false });
-            soundPool.push({ name: "TriceratopsGrowl", element: triceratopsSound, played: false });
+            soundPool.push({ name: "DinosaurGrowl", element: dinosaurSound, played: false });
         }
     }
 }

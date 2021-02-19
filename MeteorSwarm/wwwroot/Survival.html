@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Survival Hex Game</title>
+    <style>
+        .no-close .ui-dialog-titlebar-close {
+            display: none
+        }
+    </style>
     <script type="text/javascript" src="Survival.js"></script>
     <script type="text/javascript" src="HexGameEngineVersion1.js"></script>
     <script src="modernizr-1.6.min.js"></script>
@@ -14,7 +19,7 @@
     <!-- End stuff to remove -->
 
     <script>jQuery(function () {
-            jQuery('#survivalDialog').dialog({ autoOpen: false });
+            jQuery('#survivalDialog').dialog({ autoOpen: false, dialogClass: 'no-close' });
         });</script>
 </head>
 <body>
@@ -34,8 +39,8 @@
     </div>
     <div id="survivalDialog" title="Combat Window" style="display: none;">
         <p id="dialogParagraph"></p>
-        <input id="shootButton" type="button" value="Fire Laser Pistol" onclick="shoot()" />
-        <input id="closeButton" type="button" value="Close" onclick="jQuery('#survivalDialog').dialog('close')" />
+        <div id="shootButtonDiv"><input id="shootButton" type="button" value="Fire Laser Pistol" onclick="shoot()" /></div>
+        <div id="closeButtonDiv" style="display:none"><input id="closeButton" type="button" value="Close" onclick="jQuery('#survivalDialog').dialog('close')" /></div>
     </div>
 </body>
 </html>

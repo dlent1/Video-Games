@@ -93,6 +93,7 @@ function survivalApp() {
 
     initializeImagesAndSounds();
     theCanvas.addEventListener("mousedown", eventMouseDown, false);
+    jQuery("#survivalStartButton").attr("disabled", "disabled"); // Disable start button
     startGame();
 
     function eventMouseDown(event) {
@@ -132,14 +133,17 @@ function survivalApp() {
                         if (playerCounter.x == 6 && playerCounter.y == 2) { // It's the cave
                             actionPoints = 4;
                             exhaustion = 0;
+                            if (lifePoints <= 8)
+                                lifePoints += 2;
+                            if (lifePoints == 9)
+                                lifePoints = 10;
                         }
 
                         refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                        movementInProgress = false;
 
                         if (playerCounter.x == 6 && playerCounter.y == 2) {
                             setTimeout(function () {
-                                alert("You rested in the cave and regained your action points and are no longer exhausted!");
+                                alert("You rested in the cave and regained your action points, gained 2 life points and are no longer exhausted!");
                             }, 100);
                         }
                     }
@@ -148,6 +152,7 @@ function survivalApp() {
                     monsterCheck();
                 }
 
+                movementInProgress = false;
                 // Uncomment the following 4 lines to debug
                 //context.strokeStyle = "red";
                 //context.linewidth = 1;
@@ -157,8 +162,12 @@ function survivalApp() {
 
             // Check if the end turn button is clicked
             if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
-                if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height))
-                    endTurn();
+                if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
+                    animateButton("endTurnButton");
+                    setTimeout(function () {
+                        endTurn();
+                    }, 300); 
+                }
             }
 
             // Check if the gather water button was clicked
@@ -287,12 +296,14 @@ function survivalApp() {
                     });
 
                     if (actionPoints <= 0) {
-                        setTimeout(function () {
-                            alert("You are out of action points.  Your turn has ended!");
-                            endTurn();
+                        if (!monsterAlive) {
+                            setTimeout(function () {
+                                alert("You are out of action points.  Your turn has ended!");
+                                endTurn();
 
-                        }, 100);
-
+                            }, 100);
+                        }
+                        
                         return;
                     }
 
@@ -308,27 +319,28 @@ function survivalApp() {
         var tile;
         var targetHexPixelCoordinates;
 
-        monsterAlive = true;
-
-        // Randomly determine monster type
-        currentMonster = Math.floor(Math.random() * 3);
-
-        //setTimeout(function () {
-            //alert("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
-            $('#shootButtonDiv').show();
-            $('#closeButtonDiv').hide();
-            jQuery('#dialogParagraph').text("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
-            jQuery('#survivalDialog').dialog('open');
-        //}, 100);
-
-        dinosaurImage.src = monster[currentMonster].imageURL;
-
         tile = HexGridObject.getSelectedTile(mouseLocation.x, mouseLocation.y, origin.x, origin.y);
         targetHexPixelCoordinates = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
 
-        // Display monster image and refresh
-        refreshScreen(dinosaurImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-        playSound(monster[currentMonster].sound, .5, soundPool, MAX_SOUNDS, PATH);
+        if ((Math.floor(Math.random() * 10) < 2) && terrainCostMatrix[tile.row][tile.column] != 3) {
+            monsterAlive = true;
+
+            // Randomly determine monster type
+            currentMonster = Math.floor(Math.random() * 3);
+
+            dinosaurImage.src = monster[currentMonster].imageURL;
+
+            // Display monster image and refresh
+            refreshScreen(dinosaurImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+            playSound(monster[currentMonster].sound, .5, soundPool, MAX_SOUNDS, PATH);
+
+            setTimeout(function () {
+                $('#shootButtonDiv').show();
+                $('#closeButtonDiv').hide();
+                jQuery('#dialogParagraph').text("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
+                jQuery('#survivalDialog').dialog('open');
+            }, 50);   
+        }   
     }
 
     function endTurn() {
@@ -366,11 +378,6 @@ function survivalApp() {
     }
 
     function endGame(won) {
-        lifePoints = 10;
-        waterAmount = 4;
-        foodAmount = 3;
-        exhaustion = 0;
-
         if (!won) {
             alert("Game over.  Your life points fell to zero.  Try again.");
             startGame();
@@ -470,6 +477,7 @@ function shoot() {
                     $('#closeButtonDiv').show();
                     $('#shootButtonDiv').hide();
                     startGame();
+                    return;
                 }
             }
             else {
@@ -487,6 +495,7 @@ function shoot() {
                 $('#closeButtonDiv').show();
                 $('#shootButtonDiv').hide();
                 startGame();
+                return;
             }
         }
         else {
@@ -518,6 +527,29 @@ function drawBackgroundAndGrid() {
 
 function drawPictureImage(currentImage) {
     context.drawImage(currentImage, 1018, 20);
+}
+
+function animateButton(buttonName) {
+    if (buttonName = "endTurnButton") {
+        context.font = "20px serif";
+        context.textBaseline = "middle";
+        context.fillStyle = "white";
+        context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+        context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+        context.fillStyle = "red";
+        context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
+    }
+
+    setTimeout(function () {
+        context.font = "20px serif";
+        context.textBaseline = "middle";
+        context.fillStyle = "bisque";
+        context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+        context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+        context.fillStyle = "red";
+        context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
+        return;
+    }, 200); 
 }
 
 function drawRightColumn() {
@@ -570,6 +602,16 @@ function startGame() {
     if (!canvasSupport()) {
         return;
     }
+
+    // Reset these values in case startGame is called after a game over
+    actionPoints = 4;
+    lifePoints = 10;
+    waterAmount = 4;
+    foodAmount = 3;
+    exhaustion = 0;
+    monsterAlive = false;
+    currentMonsterWounds = 0;
+    movementInProgress = false;
 
     // Display background and grid
     drawBackgroundAndGrid();

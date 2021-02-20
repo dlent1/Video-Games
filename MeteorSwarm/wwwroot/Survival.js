@@ -124,7 +124,7 @@ function survivalApp() {
 
                 // Move to hex if it is adjacent and you have enough action points to do so.
                 if (adjacent) {
-                    var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
+                    targetHexPixelCoordinates = HexGridObject.getLocationOfHex(tile.column, tile.row, centeringAdjustmentX, centeringAdjustmentY);
                     playerCounter = { x: tile.column, y: tile.row };
                     var cost = terrainCostMatrix[tile.row][tile.column];
                     actionPoints -= cost; // Pay cost of entering hex
@@ -163,7 +163,7 @@ function survivalApp() {
             // Check if the end turn button is clicked
             if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
                 if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
-                    animateButton("endTurnButton");
+                    animateButton(0);
                     setTimeout(function () {
                         endTurn();
                     }, 300); 
@@ -173,82 +173,88 @@ function survivalApp() {
             // Check if the gather water button was clicked
             if (mouseLocation.x >= waterButton.x && mouseLocation.y >= waterButton.y) {
                 if (mouseLocation.x <= (waterButton.x + waterButton.width) && mouseLocation.y <= (waterButton.y + waterButton.height)) {
-                    if (actionPoints > 0) {
-                        actionPoints--;
+                    animateButton(3);
+                    setTimeout(function () {
+                        if (actionPoints > 0) {
+                            actionPoints--;
 
-                        waterResult = Math.floor(Math.random() * 10) + 1;
+                            waterResult = Math.floor(Math.random() * 10) + 1;
 
-                        if (waterResult <= waterLikelihoodMatrix[playerCounter.y][playerCounter.x]) {
-                            waterAmount = 4;
-                            alert("You have found water and filled all four of your bottles!");
+                            if (waterResult <= waterLikelihoodMatrix[playerCounter.y][playerCounter.x]) {
+                                waterAmount = 4;
+                                alert("You have found water and filled all four of your bottles!");
+                            }
+                            else {
+                                alert("You didn't find any water.");
+                            }
+
+                            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         }
                         else {
-                            alert("You didn't find any water.");
+                            setTimeout(function () {
+                                alert("You are out of action points and cannot gather water.  Your turn has ended!");
+                                endTurn();
+
+                            }, 100);
+
+                            return;
                         }
-
-                        targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                        refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                    }
-                    else {
-                        setTimeout(function () {
-                            alert("You are out of action points and cannot gather water.  Your turn has ended!");
-                            endTurn();
-
-                        }, 100);
-
-                        return;
-                    }
+                    }, 300);
                 }
             }
 
             // Check if the hunt button was clicked
             if (mouseLocation.x >= huntButton.x && mouseLocation.y >= huntButton.y) {
                 if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) {
-                    if (actionPoints > 0) {
-                        actionPoints--;
+                    animateButton(2);
+                    setTimeout(function () {
+                        if (actionPoints > 0) {
+                            actionPoints--;
 
-                        huntResult = Math.floor(Math.random() * 10) + 1;
+                            huntResult = Math.floor(Math.random() * 10) + 1;
 
-                        switch (terrainCostMatrix[playerCounter.y][playerCounter.x]) {
-                            case 4:
-                                huntLikelihood = 5;
-                                break;
-                            case 3:
-                                huntLikelihood = 7;
-                                break;
-                            case 2:
-                                huntLikelihood = 6;
-                            case 1:
-                                huntLikelihood = 7;
+                            switch (terrainCostMatrix[playerCounter.y][playerCounter.x]) {
+                                case 4:
+                                    huntLikelihood = 5;
+                                    break;
+                                case 3:
+                                    huntLikelihood = 7;
+                                    break;
+                                case 2:
+                                    huntLikelihood = 6;
+                                case 1:
+                                    huntLikelihood = 7;
+                            }
+
+                            if (huntResult >= huntLikelihood) {
+                                foodAmount += 10 - huntResult + 1;
+
+                                if (foodAmount > 3)
+                                    foodAmount = 3; // Max food is 3
+
+                                if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 10)
+                                    alert("You caught some fish! You now have " + foodAmount + " " + "days of food");
+                                else
+                                    alert("Successful hunt! You now have " + foodAmount + " " + "days of food");
+                            }
+                            else {
+                                alert("Your hunt was unsuccessful.");
+                            }
+
+                            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         }
+                        else
+                            setTimeout(function () {
+                                alert("You are out of action points and cannot hunt.  Your turn has ended!");
+                                endTurn();
 
-                        if (huntResult >= huntLikelihood) {
-                            foodAmount += 10 - huntResult + 1;
+                            }, 100);
 
-                            if (foodAmount > 3)
-                                foodAmount = 3; // Max food is 3
+                        return;
 
-                            if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 10)
-                                alert("You caught some fish! You now have " + foodAmount + " " + "days of food");
-                            else
-                                alert("Successful hunt! You now have " + foodAmount + " " + "days of food");
-                        }
-                        else {
-                            alert("Your hunt was unsuccessful.");
-                        }
-
-                        targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                        refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                    }
-                    else
-                        setTimeout(function () {
-                            alert("You are out of action points and cannot hunt.  Your turn has ended!");
-                            endTurn();
-
-                        }, 100);
-
-                    return;
-
+                    }, 300);
                 }
 
             }
@@ -256,24 +262,27 @@ function survivalApp() {
             // Check if sleep button is clicked
             if (mouseLocation.x >= sleepButton.x && mouseLocation.y >= sleepButton.y) {
                 if (mouseLocation.x <= (sleepButton.x + sleepButton.width) && mouseLocation.y <= (sleepButton.y + sleepButton.height)) {
-                    if (actionPoints > 0) {
-                        if (sleptAlreadyThisTurn == false) {
-                            if (exhaustion > 0) {
-                                targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                                actionPoints--;
-                                exhaustion--;
-                                sleptAlreadyThisTurn = true;
-                                movementInProgress = false;
-                                refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                    animateButton(1);
+                    setTimeout(function () {
+                        if (actionPoints > 0) {
+                            if (sleptAlreadyThisTurn == false) {
+                                if (exhaustion > 0) {
+                                    targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+                                    actionPoints--;
+                                    exhaustion--;
+                                    sleptAlreadyThisTurn = true;
+                                    movementInProgress = false;
+                                    refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+                                }
+                                else
+                                    alert("You not able to fall sleep this turn, because you have 0 exhaustion!");
                             }
                             else
-                                alert("You not able to fall sleep this turn, because you have 0 exhaustion!");
+                                alert("You can't sleep, because you already slept once this turn!");
                         }
                         else
-                            alert("You can't sleep, because you already slept once this turn!");
-                    }
-                    else
-                        alert("You need at least 1 action point to sleep!");
+                            alert("You need at least 1 action point to sleep!");
+                    }, 300);
                 }
             }
 
@@ -529,20 +538,41 @@ function drawPictureImage(currentImage) {
     context.drawImage(currentImage, 1018, 20);
 }
 
-function animateButton(buttonName) {
-    if (buttonName = "endTurnButton") {
-        context.font = "20px serif";
-        context.textBaseline = "middle";
-        context.fillStyle = "white";
-        context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
-        context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
-        context.fillStyle = "red";
-        context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
-    }
+function animateButton(button) {
+    context.font = "20px serif";
+    context.textBaseline = "middle";
+    context.fillStyle = "white";
+    switch (button) {
+        case 0:
+            context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+            context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+            context.fillStyle = "red";
+            context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
+            break;
 
+        case 1:
+            context.fillRect(sleepButton.x, sleepButton.y, sleepButton.width, sleepButton.height);
+            context.strokeRect(sleepButton.x, sleepButton.y, sleepButton.width, sleepButton.height);
+            context.fillStyle = "red";
+            context.fillText("Sleep", sleepButtonText.x, sleepButtonText.y);
+            break;
+
+        case 2:
+            context.fillRect(huntButton.x, huntButton.y, huntButton.width, huntButton.height);
+            context.strokeRect(huntButton.x, huntButton.y, huntButton.width, huntButton.height);
+            context.fillStyle = "red";
+            context.fillText("Hunt", huntButtonText.x, huntButtonText.y);
+            break;
+
+        case 3:
+            context.fillRect(waterButton.x, waterButton.y, waterButton.width, waterButton.height);
+            context.strokeRect(waterButton.x, waterButton.y, waterButton.width, waterButton.height);
+            context.fillStyle = "red";
+            context.fillText("Gather Water", waterButtonText.x, waterButtonText.y);
+            break;
+    }
+   
     setTimeout(function () {
-        context.font = "20px serif";
-        context.textBaseline = "middle";
         context.fillStyle = "bisque";
         context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
         context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);

@@ -141,11 +141,8 @@ function survivalApp() {
 
                         refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
 
-                        if (playerCounter.x == 6 && playerCounter.y == 2) {
-                            setTimeout(function () {
-                                alert("You rested in the cave and regained your action points, gained 2 life points and are no longer exhausted!");
-                            }, 100);
-                        }
+                        if (playerCounter.x == 6 && playerCounter.y == 2) 
+                            triggerGenericDialog("You're well rested!", "You rested in the cave and regained your action points, gained 2 life points and are no longer exhausted!");
                     }
 
                     // Check for monster
@@ -153,11 +150,6 @@ function survivalApp() {
                 }
 
                 movementInProgress = false;
-                // Uncomment the following 4 lines to debug
-                //context.strokeStyle = "red";
-                //context.linewidth = 1;
-                //context.strokeRect(mouseLocation.x, mouseLocation.y, 5, 5);
-                //alert(tile.column + " " + tile.row + " " + mouseLocation.x + " " + mouseLocation.y);
             }
 
             // Check if the end turn button is clicked
@@ -182,22 +174,17 @@ function survivalApp() {
 
                             if (waterResult <= waterLikelihoodMatrix[playerCounter.y][playerCounter.x]) {
                                 waterAmount = 4;
-                                alert("You have found water and filled all four of your bottles!");
+                                triggerGenericDialog("You found Water!", "You have found water and filled all four of your bottles!");
                             }
-                            else {
-                                alert("You didn't find any water.");
-                            }
+                            else 
+                                triggerGenericDialog("Failed!", "You didn't find any water.");
 
                             targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
                             refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         }
                         else {
-                            setTimeout(function () {
-                                alert("You are out of action points and cannot gather water.  Your turn has ended!");
-                                endTurn();
-
-                            }, 100);
-
+                            triggerGenericDialog("Out of action points!", "You are out of action points and cannot gather water.  Your turn has ended!");
+                            endTurn();
                             return;
                         }
                     }, 300);
@@ -234,25 +221,24 @@ function survivalApp() {
                                     foodAmount = 3; // Max food is 3
 
                                 if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 10)
-                                    alert("You caught some fish! You now have " + foodAmount + " " + "days of food");
-                                else
-                                    alert("Successful hunt! You now have " + foodAmount + " " + "days of food");
+                                    triggerGenericDialog("You caught fish!", "You caught some fish! You now have " + foodAmount + " " + "days of food");
+                                else {
+                                    triggerGenericDialog("Successful hunt!", "Successful hunt! You now have " + foodAmount + " " + "days of food");
+                                }
                             }
-                            else {
-                                alert("Your hunt was unsuccessful.");
-                            }
+                            else
+                                triggerGenericDialog("Failed hunt!", "Your hunt was unsuccessful.");
 
                             targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
                             refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                         }
-                        else
-                            setTimeout(function () {
-                                alert("You are out of action points and cannot hunt.  Your turn has ended!");
-                                endTurn();
+                        else {
+                            triggerGenericDialog("Can't hunt!", "You are out of action points and cannot hunt.  Your turn has ended!");
+                            endTurn();
 
-                            }, 100);
-
-                        return;
+                            return;
+                        }
+                            
 
                     }, 300);
                 }
@@ -275,13 +261,13 @@ function survivalApp() {
                                     refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
                                 }
                                 else
-                                    alert("You not able to fall sleep this turn, because you have 0 exhaustion!");
+                                    triggerGenericDialog("Can't sleep!", "You not able to fall sleep this turn, because you have 0 exhaustion!");
                             }
                             else
-                                alert("You can't sleep, because you already slept once this turn!");
+                                triggerGenericDialog("Can't sleep!", "You can't sleep, because you already slept once this turn!");
                         }
                         else
-                            alert("You need at least 1 action point to sleep!");
+                            triggerGenericDialog("Not enough action points!", "You need at least 1 action point to sleep!");
                     }, 300);
                 }
             }
@@ -306,11 +292,8 @@ function survivalApp() {
 
                     if (actionPoints <= 0) {
                         if (!monsterAlive) {
-                            setTimeout(function () {
-                                alert("You are out of action points.  Your turn has ended!");
+                                triggerGenericDialog("No action points!", "You are out of action points.  Your turn has ended!");
                                 endTurn();
-
-                            }, 100);
                         }
                         
                         return;
@@ -322,6 +305,16 @@ function survivalApp() {
 
             playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
         }   
+    }
+
+    function triggerGenericDialog(title, paragraphText) {
+        setTimeout(function () {
+            jQuery('#genericDialog').dialog({ autoOpen: false, title: title })
+            jQuery('#genericCloseButtonDiv').show();
+            jQuery('#genericDialog').attr('title', title);
+            jQuery('#genericDialogParagraph').text(paragraphText);
+            jQuery('#genericDialog').dialog('open');
+        }, 100);  
     }
 
     function monsterCheck() {
@@ -347,7 +340,7 @@ function survivalApp() {
                 $('#shootButtonDiv').show();
                 $('#closeButtonDiv').hide();
                 jQuery('#dialogParagraph').text("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
-                jQuery('#survivalDialog').dialog('open');
+                jQuery('#survivalDialog').dialog('open'); 
             }, 50);   
         }   
     }
@@ -388,13 +381,15 @@ function survivalApp() {
 
     function endGame(won) {
         if (!won) {
-            alert("Game over.  Your life points fell to zero.  Try again.");
-            startGame();
+            triggerGenericDialog("You lost!", "Game over.  Your life points fell to zero.  Try again.");
         }
         else {
-            alert("Congratulation!  You have made it to civilization and won the game!")
-            startGame();
+            triggerGenericDialog("You won!", "Congratulation!  You have made it to civilization and won the game!");
         }
+
+        setTimeout(function () {
+            startGame();
+        }, 3000);
     }
 
     // Once the game loads disable the start button
@@ -651,6 +646,14 @@ function startGame() {
 
     drawPictureImage(crashedPlaneImage);
     drawRightColumn();
+
+    setTimeout(function () {
+        jQuery('#genericDialog').dialog({autoOpen: false})
+        jQuery('#genericCloseButtonDiv').show();
+        jQuery('#genericDialog').attr('title', 'Oh No!');
+        jQuery('#genericDialogParagraph').text("You have crashed on a mysterious Earth-like planet.  Suddenly, you detect radio transmissions from the North West.  Go there to find help.  You have a laser pistol and limited food and water. However, you can hunt and dig for water if you need to.");
+        jQuery('#genericDialog').dialog('open');
+    }, 300);
 }
 
 // Place the counter on a random location on the bottom of the map
@@ -667,5 +670,4 @@ function placeCounterRandomly(HexGridObject, context) {
     var targetHex = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
 
     context.drawImage(pilotImage, targetHex.columnPixel, targetHex.rowPixel);
-    //alert("column = " + playerCounter.x + " row = " + playerCounter.y);
 }

@@ -99,9 +99,6 @@ function survivalApp() {
     function eventMouseDown(event) {
         var targetHexPixelCoordinates = {};
         var tile = {};
-        var huntResult;
-        var huntLikelihood;
-        var waterResult;
 
         if (event.layerX || event.layerX == 0) { // Firefox
             mouseLocation.x = event.layerX;
@@ -165,111 +162,20 @@ function survivalApp() {
             // Check if the gather water button was clicked
             if (mouseLocation.x >= waterButton.x && mouseLocation.y >= waterButton.y) {
                 if (mouseLocation.x <= (waterButton.x + waterButton.width) && mouseLocation.y <= (waterButton.y + waterButton.height)) {
-                    animateButton(3);
-                    setTimeout(function () {
-                        if (actionPoints > 0) {
-                            actionPoints--;
-
-                            waterResult = Math.floor(Math.random() * 10) + 1;
-
-                            if (waterResult <= waterLikelihoodMatrix[playerCounter.y][playerCounter.x]) {
-                                waterAmount = 4;
-                                triggerGenericDialog("You found Water!", "You have found water and filled all four of your bottles!");
-                            }
-                            else 
-                                triggerGenericDialog("Failed!", "You didn't find any water.");
-
-                            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                        }
-                        else {
-                            triggerGenericDialog("Out of action points!", "You are out of action points and cannot gather water.  Your turn has ended!");
-                            endTurn();
-                            return;
-                        }
-                    }, 300);
+                    gatherWater();
                 }
             }
 
             // Check if the hunt button was clicked
             if (mouseLocation.x >= huntButton.x && mouseLocation.y >= huntButton.y) {
-                if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) {
-                    animateButton(2);
-                    setTimeout(function () {
-                        if (actionPoints > 0) {
-                            actionPoints--;
-
-                            huntResult = Math.floor(Math.random() * 10) + 1;
-
-                            switch (terrainCostMatrix[playerCounter.y][playerCounter.x]) {
-                                case 4:
-                                    huntLikelihood = 5;
-                                    break;
-                                case 3:
-                                    huntLikelihood = 7;
-                                    break;
-                                case 2:
-                                    huntLikelihood = 6;
-                                case 1:
-                                    huntLikelihood = 7;
-                            }
-
-                            if (huntResult >= huntLikelihood) {
-                                foodAmount += 10 - huntResult + 1;
-
-                                if (foodAmount > 3)
-                                    foodAmount = 3; // Max food is 3
-
-                                if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 10)
-                                    triggerGenericDialog("You caught fish!", "You caught some fish! You now have " + foodAmount + " " + "days of food");
-                                else {
-                                    triggerGenericDialog("Successful hunt!", "Successful hunt! You now have " + foodAmount + " " + "days of food");
-                                }
-                            }
-                            else
-                                triggerGenericDialog("Failed hunt!", "Your hunt was unsuccessful.");
-
-                            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                        }
-                        else {
-                            triggerGenericDialog("Can't hunt!", "You are out of action points and cannot hunt.  Your turn has ended!");
-                            endTurn();
-
-                            return;
-                        }
-                            
-
-                    }, 300);
-                }
-
+                if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) 
+                    hunt();
             }
 
             // Check if sleep button is clicked
             if (mouseLocation.x >= sleepButton.x && mouseLocation.y >= sleepButton.y) {
-                if (mouseLocation.x <= (sleepButton.x + sleepButton.width) && mouseLocation.y <= (sleepButton.y + sleepButton.height)) {
-                    animateButton(1);
-                    setTimeout(function () {
-                        if (actionPoints > 0) {
-                            if (sleptAlreadyThisTurn == false) {
-                                if (exhaustion > 0) {
-                                    targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-                                    actionPoints--;
-                                    exhaustion--;
-                                    sleptAlreadyThisTurn = true;
-                                    movementInProgress = false;
-                                    refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-                                }
-                                else
-                                    triggerGenericDialog("Can't sleep!", "You not able to fall sleep this turn, because you have 0 exhaustion!");
-                            }
-                            else
-                                triggerGenericDialog("Can't sleep!", "You can't sleep, because you already slept once this turn!");
-                        }
-                        else
-                            triggerGenericDialog("Not enough action points!", "You need at least 1 action point to sleep!");
-                    }, 300);
-                }
+                if (mouseLocation.x <= (sleepButton.x + sleepButton.width) && mouseLocation.y <= (sleepButton.y + sleepButton.height)) 
+                    sleepNow();
             }
 
             // Check if player counter was clicked
@@ -307,16 +213,6 @@ function survivalApp() {
         }   
     }
 
-    function triggerGenericDialog(title, paragraphText) {
-        setTimeout(function () {
-            jQuery('#genericDialog').dialog({ autoOpen: false, title: title })
-            jQuery('#genericCloseButtonDiv').show();
-            jQuery('#genericDialog').attr('title', title);
-            jQuery('#genericDialogParagraph').text(paragraphText);
-            jQuery('#genericDialog').dialog('open');
-        }, 100);  
-    }
-
     function monsterCheck() {
         var tile;
         var targetHexPixelCoordinates;
@@ -337,67 +233,13 @@ function survivalApp() {
             playSound(monster[currentMonster].sound, .5, soundPool, MAX_SOUNDS, PATH);
 
             setTimeout(function () {
-                $('#shootButtonDiv').show();
-                $('#closeButtonDiv').hide();
+                jQuery('#shootButtonDiv').show();
+                jQuery('#closeButtonDiv').hide();
                 jQuery('#dialogParagraph').text("You are being attacked by a " + monster[currentMonster].name + ".  " + "Shoot your laser pistol to try and kill it.");
                 jQuery('#survivalDialog').dialog('open'); 
-            }, 50);   
+            }, 100);   
         }   
     }
-
-    function endTurn() {
-        var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
-        movementInProgress = false;
-        actionPoints = 4;
-        exhaustion++;
-        sleptAlreadyThisTurn = false;
-
-        // Check if you've won the game
-        if (playerCounter.x == 0 && playerCounter.y == 0) {
-            endGame(true);
-            return;
-        }
-
-        if (exhaustion > 3)
-            lifePoints--;
-
-        if (foodAmount > 0)
-            foodAmount--;
-        else
-            lifePoints--;
-
-        if (waterAmount > 0)
-            waterAmount--;
-        else
-            lifePoints -= 2; 
-
-        if (lifePoints <= 0) {
-            endGame(false);
-            return;
-        }    
-        else
-            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
-    }
-
-    function endGame(won) {
-        if (!won) {
-            triggerGenericDialog("You lost!", "Game over.  Your life points fell to zero.  Try again.");
-        }
-        else {
-            triggerGenericDialog("You won!", "Congratulation!  You have made it to civilization and won the game!");
-        }
-
-        setTimeout(function () {
-            startGame();
-        }, 3000);
-    }
-
-    // Once the game loads disable the start button
-    //function eventWindowLoaded() {
-    //    jQuery("#survivalStartButton").attr("disabled", "disabled");
-    //    canvasApp();
-
-    //}
 
     // The return method makes sure the calling function waits for this to complete before going on to the next step
     // Note: the background image is preloaded on Survival.html to eliminate wait time and async problems
@@ -464,8 +306,8 @@ function shoot() {
 
         // Check if monster is dead
         if (monster[currentMonster].hp <= currentMonsterWounds) {
-            $('#shootButtonDiv').hide();
-            $('#closeButtonDiv').show();
+            jQuery('#shootButtonDiv').hide();
+            jQuery('#closeButtonDiv').show();
             jQuery('#dialogParagraph').text("Your pistol hit and killed the " + monster[currentMonster].name + ".  " + "Click close to go back to your travels.");
             monsterAlive = false;
             currentMonsterWounds = 0;
@@ -478,8 +320,8 @@ function shoot() {
                     jQuery('#dialogParagraph').text("Your pistol hit and did one damage to the " + monster[currentMonster].name + ".  " + "He fought back and did one wound to you. " + "Shoot him again!");
                 else {
                     jQuery('#dialogParagraph').text("Your pistol hit and did one damage to the " + monster[currentMonster].name + ".  " + "He fought back and killed you. " + "Game over!");
-                    $('#closeButtonDiv').show();
-                    $('#shootButtonDiv').hide();
+                    jQuery('#closeButtonDiv').show();
+                    jQuery('#shootButtonDiv').hide();
                     startGame();
                     return;
                 }
@@ -496,8 +338,8 @@ function shoot() {
                 jQuery('#dialogParagraph').text("Your pistol missed the " + monster[currentMonster].name + ".  " + "He fought back and did one wound to you. " + "Shoot him again!");
             else {
                 jQuery('#dialogParagraph').text("Your pistol hit and did one damage to the " + monster[currentMonster].name + ".  " + "He fought back and killed you. " + "Game over!");
-                $('#closeButtonDiv').show();
-                $('#shootButtonDiv').hide();
+                jQuery('#closeButtonDiv').show();
+                jQuery('#shootButtonDiv').hide();
                 startGame();
                 return;
             }
@@ -567,14 +409,14 @@ function animateButton(button) {
             break;
     }
    
-    setTimeout(function () {
-        context.fillStyle = "bisque";
-        context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
-        context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
-        context.fillStyle = "red";
-        context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
-        return;
-    }, 200); 
+    //setTimeout(function () {
+    //    context.fillStyle = "bisque";
+    //    context.fillRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+    //    context.strokeRect(endTurnButton.x, endTurnButton.y, endTurnButton.width, endTurnButton.height);
+    //    context.fillStyle = "red";
+    //    context.fillText("End Turn", endTurnButtonText.x, endTurnButtonText.y);
+    //    return;
+    //}, 200); 
 }
 
 function drawRightColumn() {
@@ -648,7 +490,7 @@ function startGame() {
     drawRightColumn();
 
     setTimeout(function () {
-        jQuery('#genericDialog').dialog({autoOpen: false})
+        jQuery('#genericDialog').dialog({autoOpen: false, title: "Oh No!"})
         jQuery('#genericCloseButtonDiv').show();
         jQuery('#genericDialog').attr('title', 'Oh No!');
         jQuery('#genericDialogParagraph').text("You have crashed on a mysterious Earth-like planet.  Suddenly, you detect radio transmissions from the North West.  Go there to find help.  You have a laser pistol and limited food and water. However, you can hunt and dig for water if you need to.");
@@ -670,4 +512,170 @@ function placeCounterRandomly(HexGridObject, context) {
     var targetHex = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
 
     context.drawImage(pilotImage, targetHex.columnPixel, targetHex.rowPixel);
+}
+
+function gatherWater() {
+    var targetHexPixelCoordinates = {};
+
+    animateButton(3);
+    setTimeout(function () {
+        if (actionPoints > 0) {
+            actionPoints--;
+
+            waterResult = Math.floor(Math.random() * 10) + 1;
+
+            if (waterResult <= waterLikelihoodMatrix[playerCounter.y][playerCounter.x]) {
+                waterAmount = 4;
+                triggerGenericDialog("You found Water!", "You have found water and filled all four of your bottles!");
+            }
+            else
+                triggerGenericDialog("Failed!", "You didn't find any water.");
+
+            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+        }
+        else {
+            triggerGenericDialog("Out of action points!", "You are out of action points and cannot gather water.  Your turn has ended!");
+            endTurn();
+            return;
+        }
+    }, 300);
+}
+
+function hunt() {
+    var targetHexPixelCoordinates = {};
+    var huntLikelihood;
+    var huntResult;
+
+    animateButton(2);
+    setTimeout(function () {
+        if (actionPoints > 0) {
+            actionPoints--;
+
+            huntResult = Math.floor(Math.random() * 10) + 1;
+
+            switch (terrainCostMatrix[playerCounter.y][playerCounter.x]) {
+                case 4:
+                    huntLikelihood = 5;
+                    break;
+                case 3:
+                    huntLikelihood = 7;
+                    break;
+                case 2:
+                    huntLikelihood = 6;
+                case 1:
+                    huntLikelihood = 7;
+            }
+
+            if (huntResult >= huntLikelihood) {
+                foodAmount += 10 - huntResult + 1;
+
+                if (foodAmount > 3)
+                    foodAmount = 3; // Max food is 3
+
+                if (waterLikelihoodMatrix[playerCounter.y][playerCounter.x] == 10)
+                    triggerGenericDialog("You caught fish!", "You caught some fish! You now have " + foodAmount + " " + "days of food");
+                else {
+                    triggerGenericDialog("Successful hunt!", "Successful hunt! You now have " + foodAmount + " " + "days of food");
+                }
+            }
+            else
+                triggerGenericDialog("Failed hunt!", "Your hunt was unsuccessful.");
+
+            targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+            refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+        }
+        else {
+            triggerGenericDialog("Can't hunt!", "You are out of action points and cannot hunt.  Your turn has ended!");
+            endTurn();
+
+            return;
+        }
+
+
+    }, 300);
+}
+
+function sleepNow() {
+    animateButton(1);
+    targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+
+    setTimeout(function () {
+        if (actionPoints > 0) {
+            if (sleptAlreadyThisTurn == false) {
+                if (exhaustion > 0) {
+                    actionPoints--;
+                    exhaustion--;
+                    sleptAlreadyThisTurn = true;
+                    movementInProgress = false;
+                    triggerGenericDialog("ZZZZ!", "You slept well and have one less exhaustion!");
+                }
+                else
+                    triggerGenericDialog("Can't sleep!", "You're not able to fall sleep this turn, because you have 0 exhaustion!");
+            }
+            else
+                triggerGenericDialog("Can't sleep!", "You can't sleep, because you already slept once this turn!");
+        }
+        else
+            triggerGenericDialog("Not enough action points!", "You need at least 1 action point to sleep!");
+
+        refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+    }, 300);
+}
+
+function endTurn() {
+    var targetHexPixelCoordinates = HexGridObject.getLocationOfHex(playerCounter.x, playerCounter.y, centeringAdjustmentX, centeringAdjustmentY);
+    movementInProgress = false;
+    actionPoints = 4;
+    exhaustion++;
+    sleptAlreadyThisTurn = false;
+
+    // Check if you've won the game
+    if (playerCounter.x == 0 && playerCounter.y == 0) {
+        endGame(true);
+        return;
+    }
+
+    if (exhaustion > 3)
+        lifePoints--;
+
+    if (foodAmount > 0)
+        foodAmount--;
+    else
+        lifePoints--;
+
+    if (waterAmount > 0)
+        waterAmount--;
+    else
+        lifePoints -= 2;
+
+    if (lifePoints <= 0) {
+        endGame(false);
+        return;
+    }
+    else
+        refreshScreen(crashedPlaneImage, targetHexPixelCoordinates.columnPixel, targetHexPixelCoordinates.rowPixel);
+}
+
+function endGame(won) {
+    if (!won) {
+        triggerGenericDialog("You lost!", "Game over.  Your life points fell to zero.  Try again.");
+    }
+    else {
+        triggerGenericDialog("You won!", "Congratulation!  You have made it to civilization and won the game!");
+    }
+
+    setTimeout(function () {
+        startGame();
+    }, 3000);
+}
+
+function triggerGenericDialog(title, paragraphText) {
+    setTimeout(function () {
+        jQuery('#genericDialog').dialog({ autoOpen: false, title: title })
+        jQuery('#genericCloseButtonDiv').show();
+        jQuery('#genericDialog').attr('title', title);
+        jQuery('#genericDialogParagraph').text(paragraphText);
+        jQuery('#genericDialog').dialog('open');
+    }, 100);
 }

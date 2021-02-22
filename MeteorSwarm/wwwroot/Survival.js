@@ -94,7 +94,7 @@ function survivalApp() {
     initializeImagesAndSounds();
     theCanvas.addEventListener("mousedown", eventMouseDown, false);
     jQuery("#survivalStartButton").attr("disabled", "disabled"); // Disable start button
-    startGame();
+    startGame(true);
 
     function eventMouseDown(event) {
         var targetHexPixelCoordinates = {};
@@ -464,7 +464,7 @@ function drawRightColumn() {
     context.fillStyle = "red";
 }
 
-function startGame() {
+function startGame(firstGame) {
     // If the browser doesn't support canvas exit
     if (!canvasSupport()) {
         return;
@@ -488,11 +488,19 @@ function startGame() {
 
     drawPictureImage(crashedPlaneImage);
     drawRightColumn();
-
+    
     setTimeout(function () {
-        jQuery('#genericDialog').dialog({autoOpen: false, title: "Oh No!"})
+        if (firstGame) {
+            jQuery('#genericDialog').dialog({ autoOpen: false, title: "Oh No!" });
+            jQuery('#genericDialog').attr('title', 'Oh No!');
+        }
+        else {
+            jQuery('#genericDialog').dialog({ autoOpen: false, title: "You died! Restarting the game." });
+            jQuery('#genericDialog').attr('title', 'You died!  Restarting the game.');
+        }
+
         jQuery('#genericCloseButtonDiv').show();
-        jQuery('#genericDialog').attr('title', 'Oh No!');
+        
         jQuery('#genericDialogParagraph').text("You have crashed on a mysterious Earth-like planet.  Suddenly, you detect radio transmissions from the North West.  Go there to find help.  You have a laser pistol and limited food and water. However, you can hunt and dig for water if you need to.");
         jQuery('#genericDialog').dialog('open');
     }, 300);
@@ -660,13 +668,15 @@ function endTurn() {
 function endGame(won) {
     if (!won) {
         triggerGenericDialog("You lost!", "Game over.  Your life points fell to zero.  Try again.");
+        won = false;
     }
     else {
         triggerGenericDialog("You won!", "Congratulation!  You have made it to civilization and won the game!");
+        won = true;
     }
 
     setTimeout(function () {
-        startGame();
+        startGame(won);
     }, 3000);
 }
 

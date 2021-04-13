@@ -152,6 +152,7 @@ function survivalApp() {
             // Check if the end turn button is clicked
             if (mouseLocation.x >= endTurnButton.x && mouseLocation.y >= endTurnButton.y) {
                 if (mouseLocation.x <= (endTurnButton.x + endTurnButton.width) && mouseLocation.y <= (endTurnButton.y + endTurnButton.height)) {
+                    playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
                     animateButton(0);
                     setTimeout(function () {
                         endTurn();
@@ -162,20 +163,25 @@ function survivalApp() {
             // Check if the gather water button was clicked
             if (mouseLocation.x >= waterButton.x && mouseLocation.y >= waterButton.y) {
                 if (mouseLocation.x <= (waterButton.x + waterButton.width) && mouseLocation.y <= (waterButton.y + waterButton.height)) {
+                    playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
                     gatherWater();
                 }
             }
 
             // Check if the hunt button was clicked
             if (mouseLocation.x >= huntButton.x && mouseLocation.y >= huntButton.y) {
-                if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) 
+                if (mouseLocation.x <= (huntButton.x + huntButton.width) && mouseLocation.y <= (huntButton.y + huntButton.height)) {
+                    playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
                     hunt();
+                }
             }
 
             // Check if sleep button is clicked
             if (mouseLocation.x >= sleepButton.x && mouseLocation.y >= sleepButton.y) {
-                if (mouseLocation.x <= (sleepButton.x + sleepButton.width) && mouseLocation.y <= (sleepButton.y + sleepButton.height)) 
+                if (mouseLocation.x <= (sleepButton.x + sleepButton.width) && mouseLocation.y <= (sleepButton.y + sleepButton.height)) {
+                    playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
                     sleepNow();
+                }
             }
 
             // Check if player counter was clicked
@@ -209,7 +215,6 @@ function survivalApp() {
                 }
             }
 
-            playSound("MouseClick", .5, soundPool, MAX_SOUNDS, PATH);
         }   
     }
 

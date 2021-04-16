@@ -104,3 +104,21 @@
 /processorParam:TextureFormat=Color
 /build:stars.jpeg
 
+#begin StegasaurusGrowl.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:StegasaurusGrowl.mp3
+
+#begin StegasaurusGrowl.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:StegasaurusGrowl.ogg
+
+#begin StegasaurusGrowl.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:StegasaurusGrowl.wav
+

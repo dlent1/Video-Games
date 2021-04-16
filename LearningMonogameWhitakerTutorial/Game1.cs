@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 
 namespace LearningMonogameWhitakerTutorial
 {
@@ -9,15 +11,19 @@ namespace LearningMonogameWhitakerTutorial
     {
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
+        private List<SoundEffect> soundEffects;
         private Texture2D background;
         private Texture2D shuttle;
         private Texture2D earth;
         private Texture2D smileyWalk;
+        private Texture2D line;
         private SpriteFont font;
-        private AnimatedSprite animatedSprite;
+
         private Texture2D blue;
         private Texture2D green;
         private Texture2D red;
+
+        private AnimatedSprite animatedSprite;
         private int score = 0;
         private float angle = 0;
 
@@ -31,6 +37,7 @@ namespace LearningMonogameWhitakerTutorial
         private float redSpeed = 0.022f;
 
         private float distance = 100; // Radius of circle sprites will travel around
+
         // End: Variables to be used when moving red, green and blue in a circle
 
         public Game1()
@@ -38,12 +45,14 @@ namespace LearningMonogameWhitakerTutorial
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            soundEffects = new List<SoundEffect>();
         }
 
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
+            line = new Texture2D(graphics.GraphicsDevice, 1, 1, false, SurfaceFormat.Color); // Can't be initialized in constructor, because GraphicsDevice is null there
+            line.SetData(new[] { Color.White });
             base.Initialize();
         }
 
@@ -52,8 +61,8 @@ namespace LearningMonogameWhitakerTutorial
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            background = Content.Load<Texture2D>("stars"); 
-            shuttle = Content.Load<Texture2D>("shuttle");  
+            background = Content.Load<Texture2D>("stars");
+            shuttle = Content.Load<Texture2D>("shuttle");
             earth = Content.Load<Texture2D>("earth");
             font = Content.Load<SpriteFont>("Score");
             smileyWalk = Content.Load<Texture2D>("SmileyWalk");
@@ -61,6 +70,9 @@ namespace LearningMonogameWhitakerTutorial
             blue = Content.Load<Texture2D>("blue");
             green = Content.Load<Texture2D>("green");
             red = Content.Load<Texture2D>("red");
+
+            soundEffects.Add(Content.Load<SoundEffect>("StegasaurusGrowl"));
+            soundEffects[0].Play(); // See: https://gamefromscratch.com/monogame-tutorial-audio/ for audio tutorial and how to change  volume and loop sound
         }
 
         protected override void Update(GameTime gameTime)
@@ -95,6 +107,8 @@ namespace LearningMonogameWhitakerTutorial
             //_spriteBatch.Draw(_shuttle, new Vector2(450, 240), Color.White); // Static shuttle on screen
             spriteBatch.Draw(shuttle, location, sourceRectangle, Color.White, angle, origin, 1.0f, SpriteEffects.None, 1);  // Rotate shuttle, Note: Color.White means no tint color 1.0f is scale
             spriteBatch.DrawString(font, "Score: " + score, new Vector2(100, 100), Color.White);
+
+            spriteBatch.Draw(line, new Rectangle(100, 100, 500, 1), null, Color.White, (float)Math.PI / 4, new Vector2(0, 0), SpriteEffects.None, 0);
             spriteBatch.End();
 
             animatedSprite.Draw(spriteBatch, new Vector2(400, 200));

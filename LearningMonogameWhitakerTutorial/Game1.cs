@@ -19,7 +19,7 @@ namespace LearningMonogameWhitakerTutorial
         private Texture2D line;
         private SpriteFont font;
 
-        private Texture2D blue;
+        private Texture2D blue; 
         private Texture2D green;
         private Texture2D red;
 
